@@ -1,4 +1,5 @@
 .header {
+  position: relative;
   background: #fff;
   .content {
     position: relative;
@@ -98,6 +99,10 @@
     }
 
     .logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
       padding: 5px 0 0;
       img {
         max-width: 108px;

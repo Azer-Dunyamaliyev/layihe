@@ -1,11 +1,18 @@
 import React from "react";
 import styles from "./info.module.scss";
-import { useFormik } from 'formik';
+import { useFormik } from "formik";
+import * as Yup from "yup";
+
 const Info = () => {
   const formik = useFormik({
     initialValues: {
       email: "",
     },
+    validationSchema: Yup.object({
+      email: Yup.string()
+        .email("Enter a valid email")
+        .required("Complete this field to continue"),
+    }),
     onSubmit: (values) => {
       alert(JSON.stringify(values, null, 2));
     },
@@ -20,14 +27,25 @@ const Info = () => {
               the latest news
             </h2>
             <form onSubmit={formik.handleSubmit}>
-              <input
-                id="email"
-                name="email"
-                placeholder="E-Mail"
-                type="email"
-                onChange={formik.handleChange}
-                value={formik.values.email}
-              />
+            <div>
+                  <input
+                    id="email"
+                    name="email"
+                    placeholder="E-mail"
+                    type="email"
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    value={formik.values.email}
+                    className={
+                      formik.errors.email && formik.touched.email
+                        ? styles.errorInput
+                        : ""
+                    }
+                  />
+                </div>
+                {formik.errors.email && formik.touched.email && (
+                  <p className={styles.errorText}>{formik.errors.email}</p>
+                )}
 
               <button type="submit">Sign up now</button>
             </form>

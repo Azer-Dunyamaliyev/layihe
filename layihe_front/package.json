@@ -15,8 +15,10 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.1.5",
     "react-scripts": "5.0.1",
+    "react-select": "^5.10.0",
     "sass": "^1.83.4",
-    "swiper": "^11.2.2"
+    "swiper": "^11.2.2",
+    "yup": "^1.6.1"
   },
   "scripts": {
     "start": "react-scripts start",

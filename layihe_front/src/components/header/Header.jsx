@@ -122,7 +122,7 @@ const Header = () => {
               <Link to={'/login'}>Log In</Link>
               <div className={styles.module}>
                 <Link to={'/login'} className={styles.btn}>Sign In</Link>
-                <p>Don`t have an account? <span><Link>Register</Link></span></p>
+                <p>Don`t have an account? <span><Link to={'/register'}>Register</Link></span></p>
               </div>
             </li>
             <li>

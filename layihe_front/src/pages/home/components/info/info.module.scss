@@ -15,10 +15,10 @@
       gap: 25px;
       max-width: 350px;
       h2 {
-        font-size: 22px;
+        font-size: 20px;
         color: #131313;
-        font-family: "Lora", serif;
-        font-weight: 600;
+        font-family: "Inria Sans", serif;
+        font-weight: 700;
       }
 
       form {
@@ -40,6 +40,15 @@
           &::placeholder {
             color: #131313;
           }
+
+          &.errorInput {
+            border: 1px solid #cb4848 !important;
+          }
+        }
+
+        .errorText {
+          color: #cb4848;
+          font-size: 11px;
         }
 
         button {
