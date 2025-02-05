@@ -3,10 +3,15 @@ import Layout from "../../layout/Layout";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import styles from "./login.module.scss";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { postLoginThunk } from "../../redux/reducers/userSlice";
+import { useDispatch } from "react-redux";
 
 const Login = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const formik = useFormik({
     initialValues: {
@@ -21,8 +26,33 @@ const Login = () => {
         .min(8, "Password must be at least 8 characters")
         .required("Complete this field to continue"),
     }),
-    onSubmit: (values) => {
-      alert(JSON.stringify(values, null, 2));
+    onSubmit: async (values) => {
+      setErrorMessage(null);
+      try {
+        const result = await dispatch(postLoginThunk(values));
+        if (result.payload && result.payload.token) {
+          formik.resetForm();
+          localStorage.setItem("token", result.payload.token);
+          navigate("/");
+        } else {
+          setErrorMessage(result.payload?.message || "An error has occurred.");
+        }
+      } catch (error) {
+        console.error("API Error:", error);
+
+        if (error.response) {
+          setErrorMessage(
+            error.response.data.message ||
+              "An error occurred, please try again."
+          );
+        } else if (error.request) {
+          setErrorMessage(
+            "Could not connect to the server. Please check your internet connection."
+          );
+        } else {
+          setErrorMessage("An error occurred, please try again.");
+        }
+      }
     },
   });
 
@@ -110,11 +140,15 @@ const Login = () => {
                 {formik.errors.password && formik.touched.password && (
                   <p className={styles.errorText}>{formik.errors.password}</p>
                 )}
-
+                {errorMessage && (
+                  <p className={styles.errorText}>{errorMessage}</p>
+                )}
                 <button className={styles.submit} type="submit">
                   Sign in
                 </button>
-                <Link to={'/register'} className={styles.create}>Create account</Link>
+                <Link to={"/register"} className={styles.create}>
+                  Create account
+                </Link>
               </form>
               <Link className={styles.forgot}>Forgotten your password?</Link>
             </div>

@@ -1,28 +1,38 @@
-import express, { urlencoded } from 'express'
+import express, { urlencoded } from 'express';
 import { configDotenv } from "dotenv";
-import cors from 'cors'
+import cors from 'cors';
 import connectDB from './config/connection.js';
-import userRoutes from './routes/auth.js'
+import userRoutes from './routes/auth.js';
 import cookieParser from 'cookie-parser';
 
-configDotenv()
-const app = express()
+configDotenv();
+const app = express();
 
-
-app.use(express.json())
-app.use(urlencoded({extended: true}))
+// Middleware
+app.use(express.json());
+app.use(urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors('*'))
 
-app.use('/users',userRoutes)
-connectDB()
-const PORT = 5500
+// CORS
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  allowedHeaders: 'Content-Type, Authorization',
+};
 
-app.listen(PORT,() => {
-    try {
-        
-        console.log(`Server ${PORT} portunda çalışır...`);
-    } catch (error) {
-        console.log(`Server ${PORT} portunda çalışır...`);
-    }
-})
+app.use(cors(corsOptions));
+
+// Route
+app.use('/users', userRoutes);
+
+// DB Bağlantısı
+connectDB().then(() => {
+  console.log('DB quruldu');
+}).catch((err) => {
+  console.error('Veritabanına bağlanırken hata oluştu:', err);
+});
+
+// SERVER
+const PORT = 5500;
+app.listen(PORT, () => {
+  console.log(`Server ${PORT} portunda çalişir...`);
+});

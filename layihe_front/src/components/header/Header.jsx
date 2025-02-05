@@ -4,13 +4,21 @@ import { Link } from "react-router-dom";
 import logo from "../../assets/images/logo.svg";
 import Drawer from "react-modern-drawer";
 import "react-modern-drawer/dist/index.css";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../../redux/reducers/userSlice";
 
 const Header = () => {
+  const dispatch = useDispatch();
+  const { token, username } = useSelector((state) => state.users);
   const [isOpenSea, setIsOpenSea] = useState(false);
   const [isOpen, setIsOpen] = React.useState(false);
   const toggleDrawer = () => {
     setIsOpen((prevState) => !prevState);
   };
+  const handleLogout = () => {
+    dispatch(logout());
+  };
+
   return (
     <div className={styles.header}>
       <div className="container">
@@ -20,6 +28,7 @@ const Header = () => {
             className={`${styles.search_form} ${
               !isOpenSea ? styles.active : ""
             }`}
+            style={{width: token ? "calc(100% - 320px)" : "calc(100% - 283px)"}}
             onSubmit={(e) => e.preventDefault()}
           >
             <input type="text" placeholder="SEARCH" />
@@ -41,7 +50,7 @@ const Header = () => {
           <nav className={`${styles.nv} ${isOpenSea ? styles.active : ""}`}>
             <ul>
               <li>
-                <Link to={'/'}>Home</Link>
+                <Link to={"/"}>Home</Link>
               </li>
               <li>
                 <Link>Woman</Link>
@@ -75,7 +84,7 @@ const Header = () => {
                 >
                   <div className={styles.burger_content}>
                     <div className={styles.links}>
-                      <Link to={'/'}>Home</Link>
+                      <Link to={"/"}>Home</Link>
                       <Link>Woman</Link>
                       <Link>Man</Link>
                       <Link>Kids</Link>
@@ -101,11 +110,14 @@ const Header = () => {
                 </Drawer>
               </li>
             </ul>
-            <Link className={styles.lg}>
+            <Link to={"/"} className={styles.lg}>
               <img src={logo} alt="lg" />
             </Link>
           </nav>
-          <Link to={'/'} className={`${styles.logo} ${isOpenSea ? styles.active : ""}`}>
+          <Link
+            to={"/"}
+            className={`${styles.logo} ${isOpenSea ? styles.active : ""}`}
+          >
             <img src={logo} alt="lg" />
           </Link>
           <ul>
@@ -118,13 +130,65 @@ const Header = () => {
                 <button onClick={() => setIsOpenSea(!isOpenSea)}>SEARCH</button>
               </Link>
             </li>
-            <li className={styles.login}>
-              <Link to={'/login'}>Log In</Link>
-              <div className={styles.module}>
-                <Link to={'/login'} className={styles.btn}>Sign In</Link>
-                <p>Don`t have an account? <span><Link to={'/register'}>Register</Link></span></p>
-              </div>
-            </li>
+            {token ? (
+              <li className={styles.account}>
+                <Link to="/my-account">My Account</Link>
+                <div className={styles.module}>
+                  <h3>{username}</h3>
+                  <ul>
+                    <li>
+                      <Link>My account</Link>
+                      <span>
+                        <svg
+                          width="24"
+                          height="24"
+                          role="img"
+                          aria-hidden="true"
+                          className="Icon_icon-content-1__kPDLF SeoBanner_buttonIcon__w24i9"
+                          xmlns="http://www.w3.org/2000/svg"
+                          xml="preserve"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="m9.354 18.354-.707-.708L14.293 12 8.647 6.354l.707-.708L15.707 12z"></path>
+                        </svg>
+                      </span>
+                    </li>
+                    <li onClick={handleLogout}>
+                      <button>Sign out</button>{" "}
+                      <span>
+                        <svg
+                          width="24"
+                          height="24"
+                          role="img"
+                          aria-hidden="true"
+                          className="Icon_icon-content-1__kPDLF SeoBanner_buttonIcon__w24i9"
+                          xmlns="http://www.w3.org/2000/svg"
+                          xml="preserve"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="m9.354 18.354-.707-.708L14.293 12 8.647 6.354l.707-.708L15.707 12z"></path>
+                        </svg>
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+              </li>
+            ) : (
+              <li className={styles.login}>
+                <Link to={"/login"}>Log In</Link>
+                <div className={styles.module}>
+                  <Link to={"/login"} className={styles.btn}>
+                    Sign In
+                  </Link>
+                  <p>
+                    Don’t have an account?{" "}
+                    <span>
+                      <Link to={"/register"}>Register</Link>
+                    </span>
+                  </p>
+                </div>
+              </li>
+            )}
             <li>
               <Link>Favorite products</Link>
             </li>
@@ -158,15 +222,14 @@ const Header = () => {
               </Link>
             </li>
             <li>
-              <Link>
+              <Link to={token ? "/my-account" : "/login"}>
+                {/* Kullanıcı ikonu */}
                 <svg
                   width="24"
                   height="24"
                   role="img"
                   aria-hidden="true"
-                  className="Icon_icon-content-1__kPDLF Icons_icon__rdhbo"
                   xmlns="http://www.w3.org/2000/svg"
-                  xml="preserve"
                   viewBox="0 0 24 24"
                 >
                   <path d="M12 12c2.757 0 5-2.243 5-5s-2.243-5-5-5-5 2.243-5 5 2.243 5 5 5m0-9c2.206 0 4 1.794 4 4s-1.794 4-4 4-4-1.794-4-4 1.794-4 4-4m0 11c-4.56 0-8 3.224-8 7.5v.5h16v-.5c0-4.276-3.44-7.5-8-7.5m-6.981 7c.257-3.454 3.172-6 6.981-6s6.724 2.546 6.981 6z"></path>

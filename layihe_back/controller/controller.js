@@ -14,39 +14,46 @@ const getAllUsers = async (req, res) => {
 
 //POST
 
-const userRegister = async (req,res) => {
+const userRegister = async (req, res) => {
     try {
-        const { username,email,password } = req.body
+        const { username, email, password, phone } = req.body;
 
-        // USER YOXLANILMASI
-        let user = await userModel.findOne({ email })
-        if (user) return res.status(400).json("Bu email zaten qeydiyatlidir!")
-        
-        // PASSWORD SIFRELEME
-        const salt = await bcrypt.genSalt(10)
-        const hashedPassword = await bcrypt.hash(password,salt)
+        // Useri yoxla
+        let user = await userModel.findOne({ email });
+        if (user) {
+            return res.status(400).json({ success: false, message: "This email is already registered!" });
+        }
 
-        // YENI USER YARATMAQ
-        user = new userModel({ username,email,password: hashedPassword })
+        // Şifreyi şifrele
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Yeni User yarat
+        user = new userModel({ username, email, password: hashedPassword, phone });
         await user.save();
-        res.status(201).json('Yeni user yaradildi!')
+
+        // Başarıyla mesaj
+        res.status(201).json({ success: true, message: "New user created!" });
+
     } catch (error) {
-        res.status(500).json('Server xetasi..')
+        console.error("Backend hata:", error);
+        res.status(500).json({ success: false, message: "Server error.." });
     }
-}
+};
+
 
 const userLogin = async (req,res) => {
     try {
-
+        
         const { email,password } = req.body
     
         // USER YOXLANISI
         const user = await userModel.findOne({ email })
-        if(!user) return res.status(400).json('Yanlis melumat')
+        if(!user) return res.status(400).json({ success: false, message: "Wrong information" })
     
         //PASSWORD YOXLANILMASI
         const isMatch = await bcrypt.compare(password,user.password) 
-        if(!isMatch) return res.status(400).json('Yanlis melumat')
+        if(!isMatch) return res.status(400).json({ success: false, message: "Wrong information" })
 
         //TOKEN YARATMAQ
         const token = jwt.sign({userId: user._id},process.env.JWT_SECRET,{expiresIn: '7d'})
@@ -54,10 +61,10 @@ const userLogin = async (req,res) => {
         // Token'ı Cookie'ye qoyuruq
         res.cookie("token", token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 7 * 24 * 60 * 60 * 1000 });
 
-        res.json({token,userId: user._id})
+        res.json({token,userId: user._id,username: user.username})
 
     } catch (error) {
-        res.status(500).json('Server xetasi')
+        res.status(500).json({ success: false, message: "Server error.." })
     }
 }
 

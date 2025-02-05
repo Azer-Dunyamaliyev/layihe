@@ -45,24 +45,13 @@
   }
 }
 
-@media screen and (max-width:1024px) {
-  .main {
-    .content {
-      h1 {
-        max-width: 90%;
-        font-size: 80px;
-       
-      }
-    }
-  }
-}
 
 @media screen and (max-width:559px) {
   .main {
     .content {
       h1 {
         max-width: 100%;
-        font-size: 50px;
+        font-size: 35px;
       }
     }
   }

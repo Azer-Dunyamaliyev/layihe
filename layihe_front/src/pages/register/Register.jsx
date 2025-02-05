@@ -4,7 +4,7 @@ import { useFormik } from "formik";
 import Select from "react-select";
 import * as Yup from "yup";
 import styles from "./register.module.scss";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import flag1 from "../../assets/images/flag1.gif";
 import flag2 from "../../assets/images/flag2.gif";
 import flag3 from "../../assets/images/flag3.png";
@@ -13,6 +13,8 @@ import flag5 from "../../assets/images/flag5.png";
 import flag6 from "../../assets/images/flag6.gif";
 import flag7 from "../../assets/images/flag7.png";
 import flag8 from "../../assets/images/flag8.png";
+import { useDispatch } from "react-redux";
+import { postRegisterThunk } from "../../redux/reducers/userSlice";
 const countryOptions = [
   { value: "+994", label: "AZE", flag: flag1 },
   { value: "+995", label: "GEO", flag: flag2 },
@@ -25,8 +27,13 @@ const countryOptions = [
 ];
 
 const Register = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const [errorMessage, setErrorMessage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countryOptions[0]);
+
   const formik = useFormik({
     initialValues: {
       username: "",
@@ -55,8 +62,40 @@ const Register = () => {
         .min(6, "Must be at least 6 digits")
         .required("Phone number is required"),
     }),
-    onSubmit: (values) => {
-      alert(JSON.stringify(values, null, 2));
+    onSubmit: async (values) => {
+      setErrorMessage(null);
+      try {
+        const fullPhoneNumber = selectedCountry.value + values.phone;
+        const updatedValues = { ...values, phone: fullPhoneNumber };
+        const result = await dispatch(postRegisterThunk(updatedValues));
+
+        if (result.payload) {
+          if (result.payload.success) {
+            formik.resetForm();
+            navigate("/login");
+          } else {
+            setErrorMessage(result.payload.message);
+          }
+        } else {
+          setErrorMessage("An error has occurred.");
+        }
+      } catch (error) {
+        console.error("API Error:", error);
+
+        if (error.response) {
+          setErrorMessage(
+            error.response.data.message ||
+              "An error occurred, please try again."
+          );
+        } else if (error.request) {
+          setErrorMessage(
+            "Could not connect to the server. Please check your internet connection."
+          );
+        } else {
+          console.error("Hata:", error.message);
+          setErrorMessage("An error occurred, please try again.");
+        }
+      }
     },
   });
 
@@ -254,7 +293,9 @@ const Register = () => {
                     )}
                   </div>
                 </div>
-
+                {errorMessage && (
+                  <p className={styles.errorText}>{errorMessage}</p>
+                )}
                 <button className={styles.submit} type="submit">
                   Create account
                 </button>
