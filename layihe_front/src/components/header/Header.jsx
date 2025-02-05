@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styles from "./header.module.scss";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/images/logo.svg";
 import Drawer from "react-modern-drawer";
 import "react-modern-drawer/dist/index.css";
@@ -9,6 +9,7 @@ import { logout } from "../../redux/reducers/userSlice";
 
 const Header = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate()
   const { token, username } = useSelector((state) => state.users);
   const [isOpenSea, setIsOpenSea] = useState(false);
   const [isOpen, setIsOpen] = React.useState(false);
@@ -132,11 +133,11 @@ const Header = () => {
             </li>
             {token ? (
               <li className={styles.account}>
-                <Link to="/my-account">My Account</Link>
+                <Link to="/account">My Account</Link>
                 <div className={styles.module}>
                   <h3>{username}</h3>
                   <ul>
-                    <li>
+                    <li onClick={() => navigate('/account')}>
                       <Link>My account</Link>
                       <span>
                         <svg
