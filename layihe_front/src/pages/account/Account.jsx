@@ -1,13 +1,17 @@
-import React from "react";
+import React, { useEffect } from "react";
 import styles from "./account.module.scss";
 import Layout from "../../layout/Layout";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../../redux/reducers/userSlice";
+import { getMeThunk, logout } from "../../redux/reducers/userSlice";
 const Account = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { token, username } = useSelector((state) => state.users);
+  const { me, loading } = useSelector((state) => state.users);
+
+  useEffect(() => {
+    dispatch(getMeThunk());
+  }, [dispatch]);
   const handleLogout = () => {
     navigate("/");
     dispatch(logout());
@@ -18,11 +22,7 @@ const Account = () => {
         <div className="container">
           <div className={styles.content}>
             <div className={styles.texts}>
-                {token ? (
-                    <h3>{username}</h3>
-                ): (
-                    <h3>User</h3>
-                )}
+              {loading ? <h3>Loading...</h3> : <h3>{me.username || "User"}</h3>}
               <ul>
                 <li>
                   <div className={styles.title}>
@@ -37,23 +37,23 @@ const Account = () => {
                         <path
                           d="M4 8H20V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V8Z"
                           stroke="black"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         ></path>
                         <path
                           d="M8 4H16L20 8H4L8 4Z"
                           stroke="black"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         ></path>
                         <path
                           d="M8 12H12"
                           stroke="black"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         ></path>
                       </svg>
                     </span>
@@ -107,7 +107,7 @@ const Account = () => {
                     </svg>
                   </span>
                 </li>
-                <li onClick={() => navigate('/detail')}>
+                <li onClick={() => navigate("/detail")}>
                   <div className={styles.title}>
                     <span>
                       <svg
@@ -120,17 +120,17 @@ const Account = () => {
                         <path
                           d="M21 12C21 13.8569 20.4376 15.5825 19.4739 17.0157C17.858 19.4189 15.1136 21 12 21C8.88636 21 6.14202 19.4189 4.52609 17.0157C3.56237 15.5825 3 13.8569 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
                           stroke="black"
-                          stroke-width="1.5"
+                          strokeWidth="1.5"
                         ></path>
                         <path
                           d="M14 9C14 10.1046 13.1046 11 12 11C10.8954 11 10 10.1046 10 9C10 7.89543 10.8954 7 12 7C13.1046 7 14 7.89543 14 9Z"
                           stroke="black"
-                          stroke-width="1.5"
+                          strokeWidth="1.5"
                         ></path>
                         <path
                           d="M15 15H8.99998C7.18822 15 5.6578 16.2045 5.16583 17.8564C6.81645 19.7808 9.26583 21 12 21C14.7341 21 17.1835 19.7808 18.8341 17.8564C18.3421 16.2045 16.8117 15 15 15Z"
                           stroke="black"
-                          stroke-width="1.5"
+                          strokeWidth="1.5"
                         ></path>
                       </svg>
                     </span>
@@ -164,30 +164,30 @@ const Account = () => {
                         <path
                           d="M3 4V18C3 19.1046 3.89543 20 5 20H17H19C20.1046 20 21 19.1046 21 18V8H17"
                           stroke="black"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         ></path>
                         <path
                           d="M3 4H17V18C17 19.1046 17.8954 20 19 20V20"
                           stroke="black"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         ></path>
                         <path
                           d="M13 8L7 8"
                           stroke="black"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         ></path>
                         <path
                           d="M13 12L9 12"
                           stroke="black"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         ></path>
                       </svg>
                     </span>
@@ -221,16 +221,16 @@ const Account = () => {
                         <path
                           d="M3 5H21V17C21 18.1046 20.1046 19 19 19H5C3.89543 19 3 18.1046 3 17V5Z"
                           stroke="black"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         ></path>
                         <path
                           d="M3 5L12 14L21 5"
                           stroke="black"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         ></path>
                       </svg>
                     </span>
@@ -266,9 +266,9 @@ const Account = () => {
                           cy="11.9999"
                           r="9"
                           stroke="black"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         ></circle>
                         <rect
                           x="12"
@@ -276,15 +276,15 @@ const Account = () => {
                           width="0.01"
                           height="0.01"
                           stroke="black"
-                          stroke-width="1.5"
-                          stroke-linejoin="round"
+                          strokeWidth="1.5"
+                          strokeLinejoin="round"
                         ></rect>
                         <path
                           d="M10.5858 7.58572C10.9754 7.1961 11.4858 7.00083 11.9965 6.99994C12.5095 6.99904 13.0228 7.1943 13.4142 7.58572C13.8047 7.97625 14 8.48809 14 8.99994C14 9.51178 13.8047 10.0236 13.4142 10.4141C13.0228 10.8056 12.5095 11.0008 11.9965 10.9999L12 11.9999"
                           stroke="black"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         ></path>
                       </svg>
                     </span>

@@ -7,6 +7,19 @@ export const getUserThunk = createAsyncThunk("api/users", async () => {
   return response.data;
 });
 
+//{ ME }
+export const getMeThunk = createAsyncThunk("api/users/me", async (_) => {
+  const token = localStorage.getItem("token");
+
+  const response = await axios.get("http://localhost:5500/users/me", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    withCredentials: true,
+  });
+  return response.data;
+});
+
 //{ REGISTER }
 export const postRegisterThunk = createAsyncThunk(
   "user/register",
@@ -54,24 +67,119 @@ export const logout = () => (dispatch) => {
   dispatch(setUser(null));
 };
 
+// { UPDATE USER - USERNAME}
+
+export const updateUsernameThunk = createAsyncThunk(
+  "users/updateUsername",
+  async (username, thunkAPI) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.put(
+        "http://localhost:5500/users/update/username",
+        { username },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Token gönderme
+          },
+          withCredentials: true,
+        }
+      );
+      return response.data; // Yeni kullanıcı verisi
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data); // Hata durumunda
+    }
+  }
+);
+
+// { UPDATE USER - EMAIL}
+
+export const updateEmailThunk = createAsyncThunk(
+  "user/updateEmail",
+  async ({ email, password }, thunkAPI) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.put(
+        "http://localhost:5500/users/update/email",
+        { email, password },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || "An error occurred"
+      );
+    }
+  }
+);
+
+// { UPDATE PASSWORD }
+export const updatePasswordThunk = createAsyncThunk(
+  "user/updatePassword",
+  async ({ oldPassword, newPassword }, thunkAPI) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.put(
+        "http://localhost:5500/users/update/password",
+        { oldPassword, newPassword },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      // Hata mesajını döndürmek
+      return thunkAPI.rejectWithValue(
+        error.response ? error.response.data.message : "An error occurred"
+      );
+    }
+  }
+);
+
+
 export const userSlice = createSlice({
   name: "users",
   initialState: {
     loading: false,
     error: null,
     users: [],
+    me: {
+      username: "",
+      email: "",
+      password: "",
+      gender: "",
+    },
     token: localStorage.getItem("token") || null,
     username: localStorage.getItem("username") || null,
   },
   reducers: {
     logoutUser: (state) => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('username');
+      localStorage.removeItem("token");
+      localStorage.removeItem("username");
       state.token = null;
       state.username = null;
     },
     setUser: (state, action) => {
       state.token = action.payload;
+    },
+    setMe: (state, action) => {
+      state.me = action.payload;
+    },
+    setLoading: (state, action) => {
+      state.loading = action.payload;
+    },
+    setError: (state, action) => {
+      state.error = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -86,6 +194,19 @@ export const userSlice = createSlice({
         state.loading = true;
       })
       .addCase(getUserThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
+      // { ME }
+      .addCase(getMeThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.me = action.payload;
+      })
+      .addCase(getMeThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getMeThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       })
@@ -114,9 +235,52 @@ export const userSlice = createSlice({
       .addCase(postLoginThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
-      });
+      })
+
+      // { UPDATE USERNAME }
+      .addCase(updateUsernameThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.me = action.payload; // Update user data
+      })
+      .addCase(updateUsernameThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateUsernameThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
+      // { EMAIL UPDATE }
+      .addCase(updateEmailThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateEmailThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.me.email = action.payload.email;
+        state.loading = false;
+      })
+      .addCase(updateEmailThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // { PASSWORD UPDATE }
+      .addCase(updatePasswordThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updatePasswordThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.me.password = action.payload.password; 
+      })
+      .addCase(updatePasswordThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      
   },
 });
 
-export const { logoutUser,setUser } = userSlice.actions;
+export const { logoutUser, setUser, setMe, setLoading, setError } =
+  userSlice.actions;
 export default userSlice.reducer;

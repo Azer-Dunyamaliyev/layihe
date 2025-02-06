@@ -17,6 +17,7 @@ const Header = () => {
     setIsOpen((prevState) => !prevState);
   };
   const handleLogout = () => {
+    navigate('/')
     dispatch(logout());
   };
 
