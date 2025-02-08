@@ -1,6 +1,7 @@
 import userModel from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import productsModel from "../models/productsModel.js";
 
 // GET
 const getAllUsers = async (req, res) => {
@@ -23,11 +24,40 @@ const meUser = async (req, res) => {
   }
 };
 
+// CATEGORY GORE
+const getProducts = async (req, res) => {
+  const { category } = req.params;
+
+  try {
+    const { category } = req.params;
+    const filter = category ? { category } : {};
+    const products = await productsModel.find(filter);
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+const getAllProducts = async (req, res) => {
+  try {
+    const products = await productsModel.find();
+
+    if (products.length === 0) {
+      return res.status(404).json({ message: "Hiç ürün bulunamadı" });
+    }
+
+    res.status(200).json(products);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 //POST
 
 const userRegister = async (req, res) => {
   try {
-    const { username, email, password, phone, gender } = req.body;
+    const { username, email, password, phone, countryCode } = req.body;
 
     // Useri yoxla
     let user = await userModel.findOne({ email });
@@ -42,7 +72,13 @@ const userRegister = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Yeni User yarat
-    user = new userModel({ username, email, password: hashedPassword, phone });
+    user = new userModel({
+      username,
+      email,
+      password: hashedPassword,
+      phone,
+      countryCode,
+    });
     await user.save();
 
     // Başarıyla mesaj
@@ -86,6 +122,62 @@ const userLogin = async (req, res) => {
     res.json({ token, userId: user._id, username: user.username });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error.." });
+  }
+};
+
+const addProduct = async (req, res) => {
+  try {
+    const {
+      name,
+      price,
+      category,
+      description,
+      defaultColor,
+      variants,
+      images,
+      sizes,
+    } = req.body;
+
+    if (!name || !price || !category || !description) {
+      return res
+        .status(400)
+        .json({ message: "Lütfen tüm zorunlu alanları doldurun!" });
+    }
+
+    if (
+      (!variants || variants.length === 0) &&
+      (!images || images.length === 0)
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Varyant veya en az 1 görsel gereklidir!" });
+    }
+
+    if (variants && variants.length > 0 && !defaultColor) {
+      return res
+        .status(400)
+        .json({ message: "Varyantlı ürünlerde defaultColor zorunludur!" });
+    }
+
+    const newProduct = new productsModel({
+      name,
+      price,
+      category,
+      description,
+      defaultColor,
+      variants: variants || [],
+      images: images || [],
+      sizes: sizes || [],
+    });
+
+    await newProduct.save();
+
+    res
+      .status(201)
+      .json({ message: "Ürün başarıyla eklendi!", product: newProduct });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -177,7 +269,60 @@ const updatePassword = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-  
+
+const updatePhone = async (req, res) => {
+  console.log("📥 Gelen veri:", req.body); // Test için
+
+  const { phone, countryCode } = req.body;
+  const userId = req.user.userId;
+
+  if (!phone) {
+    return res.status(400).json({ message: "Phone number is required" });
+  }
+
+  try {
+    const updatedUser = await userModel.findByIdAndUpdate(
+      userId,
+      { phone, countryCode }, // 🔥 Güncellenen değerler
+      { new: true } // Güncellenmiş datayı döndür
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log("✅ Güncellenmiş Kullanıcı:", updatedUser); // Backend'de güncellendi mi kontrol edelim
+
+    res.status(200).json({
+      message: "Phone updated successfully!",
+      phone: updatedUser.phone,
+      countryCode: updatedUser.countryCode,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+//DELETE
+
+const deleteUser = async (req, res) => {
+  const userId = req.user.userId;
+
+  try {
+    const user = await userModel.findByIdAndDelete(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Account deleted successfully!" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 export {
   userRegister,
@@ -187,4 +332,9 @@ export {
   updateUserName,
   updateEmail,
   updatePassword,
+  updatePhone,
+  deleteUser,
+  getProducts,
+  getAllProducts,
+  addProduct,
 };

@@ -3,22 +3,47 @@ import styles from "./detail.module.scss";
 import Layout from "../../../../layout/Layout";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  deleteUserThunk,
   getMeThunk,
-  postRegisterThunk,
   updatePasswordThunk,
+  updatePhoneThunk,
   updateUsernameThunk,
 } from "../../../../redux/reducers/userSlice";
 import Drawer from "react-modern-drawer";
 import "react-modern-drawer/dist/index.css";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import Select from "react-select";
+import flag1 from "../../../../assets/images/flag1.gif";
+import flag2 from "../../../../assets/images/flag2.gif";
+import flag3 from "../../../../assets/images/flag3.png";
+import flag4 from "../../../../assets/images/flag4.png";
+import flag5 from "../../../../assets/images/flag5.png";
+import flag6 from "../../../../assets/images/flag6.gif";
+import flag7 from "../../../../assets/images/flag7.png";
+import flag8 from "../../../../assets/images/flag8.png";
+import { useNavigate } from "react-router-dom";
+
+const countryOptions = [
+  { value: "+994", label: "AZE", flag: flag1 },
+  { value: "+995", label: "GEO", flag: flag2 },
+  { value: "+92", label: "PAK", flag: flag3 },
+  { value: "+7", label: "RUS", flag: flag4 },
+  { value: "+90", label: "TUR", flag: flag5 },
+  { value: "+66", label: "TAI", flag: flag6 },
+  { value: "+421", label: "SLO", flag: flag7 },
+  { value: "+966", label: "SAU", flag: flag8 },
+];
 
 const Detail = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate()
   const { me, loading, error } = useSelector((state) => state.users);
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-
+  const [selectedCountry, setSelectedCountry] = useState(countryOptions[0]);
+  const [errorMessage, setErrorMessage] = useState(null);
+  
   // USERNAME DRWAER
   const [isUserNameOpen, setIsUserNameOpen] = React.useState(false);
   const toggleUserNameDrawer = () => {
@@ -31,16 +56,30 @@ const Detail = () => {
     setIsEmailOpen((prevState) => !prevState);
   };
 
+  //MOBILE DRWAER
+  const [isMobileOpen, setIsMobileOpen] = React.useState(false);
+  const toggleMobileDrawer = () => {
+    setIsMobileOpen((prevState) => !prevState);
+  };
+
   //PASWORD DRAWER
   const [isPasswordOpen, setIsPasswordOpen] = React.useState(false);
   const togglePasswordDrawer = () => {
     setIsPasswordOpen((prevState) => !prevState);
   };
 
-  //GENDER DRAWER
-  const [isGenderOpen, setIsGenderOpen] = React.useState(false);
-  const toggleGenderDrawer = () => {
-    setIsGenderOpen((prevState) => !prevState);
+  const handleDelete = () => {
+    dispatch(deleteUserThunk())
+      .unwrap()
+      .then(() => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("username");
+
+        navigate("/");
+      })
+      .catch((error) => {
+        console.error("Error deleting account:", error);
+      });
   };
 
   //USER FORMIK
@@ -77,6 +116,26 @@ const Detail = () => {
           // Hata durumunda
           alert(`Error: ${error.message || "Something went wrong"}`);
         });
+    },
+  });
+
+  //PHONE FORMIK
+  const formikMobile = useFormik({
+    initialValues: {
+      phone: me.phone || "",
+      countryCode: me.countryCode || "",
+    },
+    validationSchema: Yup.object({
+      phone: Yup.string()
+        .matches(/^\d+$/, "Only numbers allowed")
+        .min(6, "Must be at least 6 digits")
+        .required("Phone number is required"),
+    }),
+    enableReinitialize: true,
+    onSubmit: (values) => {
+      const token = localStorage.getItem('token');
+      dispatch(updatePhoneThunk({ ...values, token }));
+      toggleMobileDrawer()
     },
   });
 
@@ -120,17 +179,6 @@ const Detail = () => {
             alert("Error: " + error.message || "Something went wrong!");
           }
         });
-    },
-  });
-
-  //GENDER FORMIK
-  const formikGender = useFormik({
-    initialValues: {
-      gender: me.gender || "",
-    },
-    enableReinitialize: true,
-    onSubmit: (values) => {
-      dispatch(postRegisterThunk(values))
     },
   });
 
@@ -213,7 +261,13 @@ const Detail = () => {
                   <div className={styles.user_detail}>
                     <div className={styles.title}>
                       <label htmlFor="">E-MAIL</label>
-                      {loading ? <h5>Loading...</h5> : <h5>{me.email}</h5>}
+                      {loading ? (
+                        <h5>Loading...</h5>
+                      ) : me.username ? (
+                        <h5>{me.email} </h5>
+                      ) : (
+                        <h5>What’s your e-mail?</h5>
+                      )}
                       <Drawer
                         open={isEmailOpen}
                         onClose={toggleEmailDrawer}
@@ -224,7 +278,7 @@ const Detail = () => {
                         <div className={styles.menu}>
                           <div className={styles.texts}>
                             <div className={styles.head}>
-                              <h3>Edit name</h3>
+                              <h3>Edit e-mail</h3>
                               <button onClick={toggleEmailDrawer}>
                                 <svg
                                   width="24"
@@ -325,6 +379,160 @@ const Detail = () => {
                 <li>
                   <div className={styles.user_detail}>
                     <div className={styles.title}>
+                      <label htmlFor="">Mobile</label>
+                      {loading ? (
+                        <h5>Loading...</h5>
+                      ) : me.phone ? (
+                        <h5>{me.phone} </h5>
+                      ) : (
+                        <h5>What’s your number?</h5>
+                      )}
+                      <Drawer
+                        open={isMobileOpen}
+                        onClose={toggleMobileDrawer}
+                        direction="right"
+                        className={styles.sidebar}
+                        style={{ width: "500px", padding: "0 40px" }}
+                      >
+                        <div className={styles.menu}>
+                          <div className={styles.texts}>
+                            <div className={styles.head}>
+                              <h3>Edit mobile number</h3>
+                              <button onClick={toggleMobileDrawer}>
+                                <svg
+                                  width="24"
+                                  height="24"
+                                  role="img"
+                                  className="Icon_icon-content-1__kPDLF"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  xml="preserve"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path d="M17.354 7.354 12.707 12l4.647 4.646-.708.708L12 12.707l-4.646 4.647-.708-.708L11.293 12 6.646 7.354l.708-.708L12 11.293l4.646-4.647z"></path>
+                                  <title lang="en">Close</title>
+                                </svg>
+                              </button>
+                            </div>
+                            <form onSubmit={formikMobile.handleSubmit}>
+                              <div className={styles.nomer}>
+                                <Select
+                                  options={countryOptions}
+                                  value={selectedCountry}
+                                  onChange={(selected) => {
+                                    setSelectedCountry(selected);
+                                    formikMobile.setFieldValue(
+                                      "countryCode",
+                                      selected.value
+                                    );
+                                  }}
+                                  getOptionLabel={(e) => (
+                                    <div
+                                      style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "10px",
+                                      }}
+                                    >
+                                      <img
+                                        src={e.flag}
+                                        alt={e.label}
+                                        style={{
+                                          width: "20px",
+                                          height: "15px",
+                                        }}
+                                      />
+                                      {e.value}
+                                    </div>
+                                  )}
+                                  styles={{
+                                    dropdownIndicator: (base) => ({
+                                      ...base,
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                    }),
+
+                                    control: (base) => ({
+                                      ...base,
+                                      height: "45px",
+                                      width: "120px",
+                                      borderRadius: "0",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      fontSize: "14px",
+                                    }),
+                                    input: (base) => ({
+                                      ...base,
+                                      padding: "0",
+                                      margin: "0",
+                                      fontSize: "14px !important",
+                                    }),
+                                    menuList: (base) => ({
+                                      ...base,
+                                      maxHeight: "150px",
+                                      overflowY: "auto",
+                                    }),
+                                  }}
+                                />
+
+                                <div className={styles.nomer_input}>
+                                  <input
+                                    id=""
+                                    type="text"
+                                    name="phone"
+                                    placeholder={
+                                      formikMobile.values.phone === ""
+                                        ? "Mobile"
+                                        : ""
+                                    }
+                                    onChange={(e) => {
+                                      const onlyNumbers =
+                                        e.target.value.replace(/\D/g, ""); // Sadece rakamları al
+                                      formikMobile.setFieldValue(
+                                        "phone",
+                                        onlyNumbers
+                                      );
+                                    }}
+                                    onBlur={formikMobile.handleBlur}
+                                    value={formikMobile.values.phone}
+                                    inputMode="numeric"
+                                    style={{
+                                      border:
+                                        formikMobile.errors.phone &&
+                                        formikMobile.touched.phone
+                                          ? "1px solid #cb4848"
+                                          : "1px solid #b2b2b2",
+                                    }}
+                                  />
+                                  {formikMobile.errors.phone &&
+                                    formikMobile.touched.phone && (
+                                      <p
+                                        className={styles.errorText}
+                                        style={{ padding: "10px 0 0" }}
+                                      >
+                                        {formikMobile.errors.phone}
+                                      </p>
+                                    )}
+                                </div>
+                              </div>
+                              {errorMessage && (
+                                <p className={styles.errorText}>
+                                  {errorMessage}
+                                </p>
+                              )}
+
+                              <button type="submit">Save</button>
+                            </form>
+                          </div>
+                        </div>
+                      </Drawer>
+                    </div>
+                    <button onClick={toggleMobileDrawer}>Edit</button>
+                  </div>
+                </li>
+                <li>
+                  <div className={styles.user_detail}>
+                    <div className={styles.title}>
                       <label htmlFor="">PASSWORD</label>
                       <h5>••••••••••</h5>
                       <Drawer
@@ -337,7 +545,7 @@ const Detail = () => {
                         <div className={styles.menu}>
                           <div className={styles.texts}>
                             <div className={styles.head}>
-                              <h3>Edit name</h3>
+                              <h3>Edit password</h3>
                               <button onClick={togglePasswordDrawer}>
                                 <svg
                                   width="24"
@@ -489,108 +697,11 @@ const Detail = () => {
                     <button onClick={togglePasswordDrawer}>Edit</button>
                   </div>
                 </li>
-                <li>
-                  <div className={styles.user_detail}>
-                    <div className={styles.title}>
-                      <label htmlFor="">Gender</label>
-                      <span>Prefer not to say</span>
-                      <Drawer
-                        open={isGenderOpen}
-                        onClose={toggleGenderDrawer}
-                        direction="right"
-                        className={styles.sidebar}
-                        style={{ width: "500px", padding: "0 40px" }}
-                      >
-                        <div className={styles.menu}>
-                          <div className={styles.texts}>
-                            <div className={styles.head}>
-                              <h3>Gender</h3>
-                              <button onClick={toggleGenderDrawer}>
-                                <svg
-                                  width="24"
-                                  height="24"
-                                  role="img"
-                                  className="Icon_icon-content-1__kPDLF"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  xml="preserve"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path d="M17.354 7.354 12.707 12l4.647 4.646-.708.708L12 12.707l-4.646 4.647-.708-.708L11.293 12 6.646 7.354l.708-.708L12 11.293l4.646-4.647z"></path>
-                                  <title lang="en">Close</title>
-                                </svg>
-                              </button>
-                            </div>
-                            <form
-                              onSubmit={formikGender.handleSubmit}
-                              className={styles.gender_form}
-                            >
-                              <div className={styles.gender}>
-                                <input
-                                  id="female"
-                                  name="gender"
-                                  type="radio"
-                                  onChange={formikGender.handleChange}
-                                  value="female" 
-                                  checked={
-                                    formikGender.values.gender === "female"
-                                  } 
-                                />
-                                <label htmlFor="female">Female</label>
-                              </div>
-                              <div className={styles.gender}>
-                                <input
-                                  id="male"
-                                  name="gender"
-                                  type="radio"
-                                  onChange={formikGender.handleChange}
-                                  value="male" 
-                                  checked={
-                                    formikGender.values.gender === "male"
-                                  } 
-                                />
-                                <label htmlFor="male">Male</label>
-                              </div>
-                              <div className={styles.gender}>
-                                <input
-                                  id="non-binary"
-                                  name="gender"
-                                  type="radio"
-                                  onChange={formikGender.handleChange}
-                                  value="non-binary" 
-                                  checked={
-                                    formikGender.values.gender === "non-binary"
-                                  } 
-                                />
-                                <label htmlFor="non-binary">Non-binary</label>
-                              </div>
-                              <div className={styles.gender}>
-                                <input
-                                  id="prefer-not-to-say"
-                                  name="gender"
-                                  type="radio"
-                                  onChange={formikGender.handleChange}
-                                  value="prefer-not-to-say" 
-                                  checked={
-                                    formikGender.values.gender ===
-                                    "prefer-not-to-say"
-                                  }
-                                />
-                                <label htmlFor="prefer-not-to-say">
-                                  I'd rather not say
-                                </label>
-                              </div>
-                              <button type="submit">Save</button>
-                            </form>
-                          </div>
-                        </div>
-                      </Drawer>
-                    </div>
-                    <button onClick={toggleGenderDrawer}>Add</button>
-                  </div>
-                </li>
-                {loading && <p>Loading...</p>}
                 {error && <p style={{ color: "red" }}>{error}</p>}
               </ul>
+              <button className={styles.delete} onClick={handleDelete}>
+                Delete account
+              </button>
             </div>
           </div>
         </div>

@@ -148,6 +148,16 @@
                         }
                       }
 
+                      .nomer {
+                        width: 100%;
+                        display: flex;
+                        justify-content: space-between;
+                        gap: 20px;
+                        
+                        .nomer_input {
+                          width: 100%;
+                        }
+                      }
 
 
                       button {
@@ -180,6 +190,17 @@
             }
           }
         }
+      }
+
+      .delete {
+        width: fit-content;
+        background: none;
+        outline: none;
+        border: none;
+        border-bottom: 1px solid #131313;
+        padding: 3px 0;
+        color: #131313;
+        cursor: pointer;
       }
     }
   }

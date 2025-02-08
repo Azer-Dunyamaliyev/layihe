@@ -65,9 +65,7 @@ const Register = () => {
     onSubmit: async (values) => {
       setErrorMessage(null);
       try {
-        const fullPhoneNumber = selectedCountry.value + values.phone;
-        const updatedValues = { ...values, phone: fullPhoneNumber };
-        const result = await dispatch(postRegisterThunk(updatedValues));
+        const result = await dispatch(postRegisterThunk(values));
 
         if (result.payload) {
           if (result.payload.success) {

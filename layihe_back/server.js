@@ -4,7 +4,7 @@ import cors from 'cors';
 import connectDB from './config/connection.js';
 import userRoutes from './routes/auth.js';
 import cookieParser from 'cookie-parser';
-
+import productsRouter from './routes/productsRoute.js'
 configDotenv();
 const app = express();
 
@@ -15,7 +15,7 @@ app.use(cookieParser());
 
 // CORS
 const corsOptions = {
-  origin: 'http://localhost:3000', 
+  origin: 'http://localhost:3001', 
   methods: ['GET', 'POST', 'PUT', 'DELETE'], 
   allowedHeaders: ['Content-Type', 'Authorization'],
   exposedHeaders: ['Authorization'],
@@ -26,6 +26,8 @@ app.use(cors(corsOptions));
 
 // Route
 app.use('/users', userRoutes);
+app.use("/products", productsRouter);
+
 
 // DB Bağlantısı
 connectDB().then(() => {

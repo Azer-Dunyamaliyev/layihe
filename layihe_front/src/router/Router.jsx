@@ -5,7 +5,7 @@ import Login from '../pages/login/Login'
 import Register from '../pages/register/Register'
 import Account from '../pages/account/Account'
 import Detail from '../pages/account/components/detail/Detail'
-
+import Man from '../pages/man/Man'
 const Router = () => {
   return (
     <BrowserRouter>
@@ -15,6 +15,7 @@ const Router = () => {
         <Route path='/register' element={<Register />} />
         <Route path='/account' element={<Account />} />
         <Route path='/detail' element={<Detail />} />
+        <Route path='/man' element={<Man />} />
       </Routes>
     </BrowserRouter>
   )

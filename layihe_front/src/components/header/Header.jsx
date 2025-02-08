@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./header.module.scss";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/images/logo.svg";
 import Drawer from "react-modern-drawer";
 import "react-modern-drawer/dist/index.css";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../../redux/reducers/userSlice";
+import { getMeThunk, logout } from "../../redux/reducers/userSlice";
 
 const Header = () => {
   const dispatch = useDispatch();
@@ -13,6 +13,7 @@ const Header = () => {
   const { token, username } = useSelector((state) => state.users);
   const [isOpenSea, setIsOpenSea] = useState(false);
   const [isOpen, setIsOpen] = React.useState(false);
+  const { me,loading } = useSelector((state) => state.users)
   const toggleDrawer = () => {
     setIsOpen((prevState) => !prevState);
   };
@@ -20,6 +21,10 @@ const Header = () => {
     navigate('/')
     dispatch(logout());
   };
+
+  useEffect(() => {
+    dispatch(getMeThunk())
+  },[dispatch])
 
   return (
     <div className={styles.header}>
@@ -55,13 +60,13 @@ const Header = () => {
                 <Link to={"/"}>Home</Link>
               </li>
               <li>
-                <Link>Woman</Link>
+                <Link to={"/woman"}>Woman</Link>
               </li>
               <li>
-                <Link>Man</Link>
+                <Link to={"/man"}>Man</Link>
               </li>
               <li>
-                <Link>Kids</Link>
+                <Link to={"/kids"}>Kids</Link>
               </li>
               <li className={styles.open_burger}>
                 <button onClick={toggleDrawer}>
@@ -87,9 +92,9 @@ const Header = () => {
                   <div className={styles.burger_content}>
                     <div className={styles.links}>
                       <Link to={"/"}>Home</Link>
-                      <Link>Woman</Link>
-                      <Link>Man</Link>
-                      <Link>Kids</Link>
+                      <Link to={"/woman"}>Woman</Link>
+                      <Link to={"/man"}>Man</Link>
+                      <Link to={"/kids"}>Kids</Link>
                     </div>
                     <button
                       className={styles.remove_burger}
@@ -136,7 +141,7 @@ const Header = () => {
               <li className={styles.account}>
                 <Link to="/account">My Account</Link>
                 <div className={styles.module}>
-                  <h3>{username}</h3>
+                  {loading ? <h3>Loading...</h3> : <h3>{me.username}</h3>}
                   <ul>
                     <li onClick={() => navigate('/account')}>
                       <Link>My account</Link>
@@ -224,7 +229,7 @@ const Header = () => {
               </Link>
             </li>
             <li>
-              <Link to={token ? "/my-account" : "/login"}>
+              <Link to={token ? "/account" : "/login"}>
                 {/* Kullanıcı ikonu */}
                 <svg
                   width="24"

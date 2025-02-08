@@ -146,6 +146,53 @@ export const updatePasswordThunk = createAsyncThunk(
   }
 );
 
+// { UPDATE PHONE }
+
+export const updatePhoneThunk = createAsyncThunk(
+  "user/updatePhone",
+  async (userData, { dispatch, getState, rejectWithValue }) => {
+    try {
+      const response = await axios.put(
+        "http://localhost:5500/users/update/phone",
+        {
+          phone: userData.phone,
+          countryCode: userData.countryCode,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${userData.token}`, 
+          },
+        }
+      );
+
+      return response.data; 
+    } catch (error) {
+      console.error("Phone update error:", error);
+      return rejectWithValue(
+        error.response ? error.response.data : "Phone update failed."
+      );
+    }
+  }
+);
+
+//{ DELETE USER}
+
+export const deleteUserThunk = createAsyncThunk(
+  'user/delete', 
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete("http://localhost:5500/users/delete", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      return response.data; 
+    } catch (error) {
+      return rejectWithValue(error.response ? error.response.data : "An error occurred");
+    }
+  }
+);
 
 export const userSlice = createSlice({
   name: "users",
@@ -157,7 +204,8 @@ export const userSlice = createSlice({
       username: "",
       email: "",
       password: "",
-      gender: "",
+      phone: "",
+      countryCode: "",
     },
     token: localStorage.getItem("token") || null,
     username: localStorage.getItem("username") || null,
@@ -270,14 +318,38 @@ export const userSlice = createSlice({
       })
       .addCase(updatePasswordThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.me.password = action.payload.password; 
+        state.me.password = action.payload.password;
       })
       .addCase(updatePasswordThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      
+      // { PHONE UPDATE }
+
+      .addCase(updatePhoneThunk.fulfilled, (state, action) => {
+        state.loading = false
+        state.me.phone = action.payload.phone;
+      })
+      .addCase(updatePhoneThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Phone update failed.";
+      })
+      .addCase(updatePhoneThunk.pending, (state) => {
+        state.loading = true;
+      })
+
+      .addCase(deleteUserThunk.fulfilled, (state, action) => {
+        state.token = null; 
+        state.username = null;  
+        state.me = {};  
+      })
+      .addCase(deleteUserThunk.rejected, (state, action) => {
+        state.error = action.payload;
+      })
+      .addCase(deleteUserThunk.pending, (state) => {
+        state.loading = true;
+      })
   },
 });
 
