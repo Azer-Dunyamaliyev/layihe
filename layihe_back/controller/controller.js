@@ -26,21 +26,31 @@ const meUser = async (req, res) => {
 
 // CATEGORY GORE
 const getProducts = async (req, res) => {
-  const { category } = req.params;
-
   try {
-    const { category } = req.params;
-    const filter = category ? { category } : {};
+    const { name, category, subcategory } = req.params;
+
+    const filter = {};
+    if (name) filter.name = name;
+    if (category) filter.category = category;
+    if (subcategory) filter.subcategory = subcategory;
+
     const products = await productsModel.find(filter);
+
     res.json(products);
   } catch (error) {
+    console.error("Ürünleri getirme hatası:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
 
 const getAllProducts = async (req, res) => {
   try {
-    const products = await productsModel.find();
+    const { name } = req.params; // URL'den name parametresini al
+
+    const filter = {};
+    if (name) filter.name = name; // Eğer name parametresi varsa filtreye ekle
+
+    const products = await productsModel.find(filter);
 
     if (products.length === 0) {
       return res.status(404).json({ message: "Hiç ürün bulunamadı" });
@@ -49,7 +59,7 @@ const getAllProducts = async (req, res) => {
     res.status(200).json(products);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Sunucu hatası" });
   }
 };
 
@@ -131,6 +141,7 @@ const addProduct = async (req, res) => {
       name,
       price,
       category,
+      subcategory,
       description,
       defaultColor,
       variants,
@@ -163,6 +174,7 @@ const addProduct = async (req, res) => {
       name,
       price,
       category,
+      subcategory,
       description,
       defaultColor,
       variants: variants || [],
