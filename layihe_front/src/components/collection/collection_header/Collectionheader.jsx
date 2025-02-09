@@ -15,7 +15,7 @@ const Collectionheader = () => {
     if (name) {
       dispatch(getCategoryThunk({ name }));
     }
-  }, [dispatch, name]);
+  }, [dispatch, name,category]);
 
   useEffect(() => {
     if (products.length > 0) {
@@ -58,29 +58,26 @@ const Collectionheader = () => {
       navigate(`/category/${name}/${category}`);
     }
   };
-
-  if (loading) return <div style={{ textAlign: "center" }}>Loading...</div>;
-  if (error) return <div style={{ textAlign: "center" }}>Error: {error}</div>;
-
+  if(error) return <p style={{textAlign: "center"}}>No products available</p>
   return (
     <div className={styles.header}>
       <div className="container">
         <div className={styles.content}>
-          <ul>
-            {menuItems.map((item, index) => (
-              <li
-                key={index}
-                className={index === activeIndex ? styles.active : ""}
-                onClick={() => handleCategoryClick(index, item === "See all" ? "See all" : item.category)}
-              >
-                {typeof item === "string" ? (
-                  <Link to={`/category/${name}`}>{item}</Link>
-                ) : (
-                  <Link to={`/category/${name}/${item.category}`}>{item.category}</Link>
-                )}
-              </li>
-            ))}
-          </ul>
+            <ul>
+              {menuItems.map((item, index) => (
+                <li
+                  key={index}
+                  className={index === activeIndex ? styles.active : ""}
+                  onClick={() => handleCategoryClick(index, item === "See all" ? "See all" : item.category)}
+                >
+                  {typeof item === "string" ? (
+                    <Link to={`/category/${name}`}>{item}</Link>
+                  ) : (
+                    <Link to={`/category/${name}/${item.category}`}>{item.category}</Link>
+                  )}
+                </li>
+              ))}
+            </ul>
         </div>
       </div>
     </div>

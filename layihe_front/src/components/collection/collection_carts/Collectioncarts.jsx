@@ -2,7 +2,10 @@ import React, { useEffect, useState } from "react";
 import styles from "./collectioncarts.module.scss";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getCategoryThunk, getNameCategoryThunk } from "../../../redux/reducers/productsSlice";
+import {
+  getCategoryThunk,
+  getNameCategoryThunk,
+} from "../../../redux/reducers/productsSlice";
 import Collectioncart from "../collection_cart/Collectioncart";
 
 const Collectioncarts = () => {
@@ -30,7 +33,9 @@ const Collectioncarts = () => {
 
   useEffect(() => {
     if (category && products.length > 0) {
-      const filtered = products.filter((product) => product.category === category);
+      const filtered = products.filter(
+        (product) => product.category === category
+      );
       setFilteredProducts(filtered);
     } else if (!category && products.length > 0) {
       setFilteredProducts(products);
@@ -38,22 +43,19 @@ const Collectioncarts = () => {
   }, [category, products]);
   const shuffledProducts = shuffleArray(filteredProducts);
 
-  if (loading) return <div style={{ textAlign: "center" }}>Loading...</div>;
-  if (error) return <div style={{ textAlign: "center" }}>Error: {error}</div>;
-
+  if(error) return <p style={{textAlign: "center"}}>No products available</p>
   return (
     <div className={styles.fashion}>
       <div className="container">
         <div className={styles.content}>
-          <div className={styles.carts}>
-            {shuffledProducts.length > 0 ? (
-              shuffledProducts.map((item, index) => (
-                <Collectioncart key={index} item={item} />
-              ))
-            ) : (
-              <p>No products available</p>
-            )}
-          </div>
+          {shuffledProducts.length > 0 ? (
+            <div className={styles.carts}>
+              {shuffledProducts &&
+                shuffledProducts.map((item, index) => (
+                  <Collectioncart key={index} item={item} />
+                ))}
+            </div>
+          ) : (<p style={{textAlign: "center"}}>No products available</p>)}
         </div>
       </div>
     </div>

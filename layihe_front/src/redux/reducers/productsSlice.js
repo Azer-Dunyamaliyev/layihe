@@ -48,6 +48,7 @@ export const productsSlice = createSlice({
       .addCase(getCategoryThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.products = action.payload;
+        state.error = null
       })
       .addCase(getCategoryThunk.pending, (state) => {
         state.loading = true;
@@ -61,6 +62,7 @@ export const productsSlice = createSlice({
       .addCase(getNameCategoryThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.products = action.payload;
+        state.error = null
       })
       .addCase(getNameCategoryThunk.pending, (state) => {
         state.loading = true;

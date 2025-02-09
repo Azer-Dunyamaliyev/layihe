@@ -7,6 +7,7 @@ import Account from '../pages/account/Account'
 import Detail from '../pages/account/components/detail/Detail'
 import Man from '../pages/man/Man'
 import Collection from '../components/collection/Collection'
+import Woman from '../pages/woman/Woman'
 const Router = () => {
   return (
     <BrowserRouter>
@@ -17,6 +18,7 @@ const Router = () => {
         <Route path='/account' element={<Account />} />
         <Route path='/detail' element={<Detail />} />
         <Route path='/man' element={<Man />} />
+        <Route path='/woman' element={<Woman />} />
         <Route path='/category/:name' element={<Collection />} />
         <Route path='/category/:name/:category' element={<Collection />} />
 
