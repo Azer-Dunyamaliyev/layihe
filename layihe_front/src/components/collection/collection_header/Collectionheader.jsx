@@ -6,28 +6,62 @@ import { getCategoryThunk } from "../../../redux/reducers/productsSlice";
 
 const Collectionheader = () => {
   const navigate = useNavigate();
-  const { name } = useParams();
+  const { name,category } = useParams();
   const dispatch = useDispatch();
   const { products, loading, error } = useSelector((state) => state.products);
-
-  const uniqueCategories = [
-    ...new Map(
-      products
-        .filter((item) => item.category && item.category.trim() !== "")
-        .map((item) => [item.category, item])
-    ).values(),
-  ];
-  const menuItems = ["See all", ...uniqueCategories];
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [categories, setCategories] = useState([]);
   
   useEffect(() => {
     if (name) {
       dispatch(getCategoryThunk({ name }));
     }
-  }, [dispatch,name]);
+  }, [dispatch, name]);
+
+  useEffect(() => {
+    if (products.length > 0) {
+      const uniqueCategories = [
+        ...new Map(
+          products
+            .filter((item) => item.category && item.category.trim() !== "")
+            .map((item) => [item.category, item])
+        ).values(),
+      ];
+      setCategories((prev) => {
+        const allCategories = [...prev, ...uniqueCategories];
+        return [...new Map(allCategories.map((item) => [item.category, item])).values()];
+      });
+    }
+  }, [products]);
+
+  const menuItems = ["See all", ...categories];
+
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    if (category) {
+      const index = categories.findIndex(
+        (item) => item.category === category
+      );
+      if (index !== -1) {
+        setActiveIndex(index + 1); // "See all" öncesi index
+      }
+    } else {
+      setActiveIndex(0); // "See all" seçildiğinde
+    }
+  }, [category, categories]);
+
+  const handleCategoryClick = (index, category) => {
+    setActiveIndex(index);
+    if (category === "See all") {
+      navigate(`/category/${name}`);
+    } else {
+      navigate(`/category/${name}/${category}`);
+    }
+  };
 
   if (loading) return <div style={{ textAlign: "center" }}>Loading...</div>;
   if (error) return <div style={{ textAlign: "center" }}>Error: {error}</div>;
+
   return (
     <div className={styles.header}>
       <div className="container">
@@ -37,14 +71,12 @@ const Collectionheader = () => {
               <li
                 key={index}
                 className={index === activeIndex ? styles.active : ""}
-                onClick={() => setActiveIndex(index)}
+                onClick={() => handleCategoryClick(index, item === "See all" ? "See all" : item.category)}
               >
                 {typeof item === "string" ? (
                   <Link to={`/category/${name}`}>{item}</Link>
                 ) : (
-                  <Link to={`/category/${name}/${item.category}`}>
-                    {item.category}
-                  </Link>
+                  <Link to={`/category/${name}/${item.category}`}>{item.category}</Link>
                 )}
               </li>
             ))}

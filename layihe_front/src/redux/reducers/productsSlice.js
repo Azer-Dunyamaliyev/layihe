@@ -15,22 +15,23 @@ export const getCategoryThunk = createAsyncThunk(
   }
 );
 
-// // { GET CATEGORY JACKET}
-// export const getCategoryJacketThunk = createAsyncThunk(
-//   "category/getCategoryJacket", 
-//   async ({ category, subcategory }, thunkAPI) => {
-//     try {
-//       const response = await axios.get(
-//         `http://localhost:5500/products/category/${category}/subcategory/${subcategory}`
-//       );
-//       return { category, subcategory, products: response.data };
-//     } catch (error) {
-//       return thunkAPI.rejectWithValue(
-//         error.response ? error.response.data : error.message
-//       );
-//     }
-//   }
-// );
+// { GET CATEGORY }
+export const getNameCategoryThunk = createAsyncThunk(
+  "api/products/name/category/", 
+  async ({ name,category}, thunkAPI) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5500/products/${name}/${category}`
+      );
+      
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response ? error.response.data : error.message
+      );
+    }
+  }
+);
 
 export const productsSlice = createSlice({
   name: "products",
@@ -56,20 +57,18 @@ export const productsSlice = createSlice({
         state.error = action.error.message;
       })
 
-    //   // { GET JACKET CATEGORY SUBCATEGORY}
-    //   .addCase(getCategoryJacketThunk.fulfilled, (state, action) => {
-    //     state.loading = false;
-    //     state.products = action.payload.products;
-    //     state.error = null;
-    //   })
-    //   .addCase(getCategoryJacketThunk.pending, (state) => {
-    //     state.loading = true;
-    //     state.error = null;
-    //   })
-    //   .addCase(getCategoryJacketThunk.rejected, (state, action) => {
-    //     state.loading = false;
-    //     state.error = action.payload || "An error occurred";
-    //   });
+      // { GET JACKET CATEGORY }
+      .addCase(getNameCategoryThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.products = action.payload;
+      })
+      .addCase(getNameCategoryThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getNameCategoryThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "An error occurred";
+      });
   },
 });
 

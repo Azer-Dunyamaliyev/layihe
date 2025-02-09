@@ -14,7 +14,7 @@ const productsSchema = mongoose.Schema({
       },
     ],
     images: { type: [String], required: false },
-    sizes: [{ type: String, enum: ["S", "M", "L", "XL", "XXL"] }]
+    sizes: [{ type: String }]
 },{timestamps:true})
 
 const productsModel = mongoose.model("products",productsSchema)
