@@ -1,17 +1,50 @@
 import React, { useState, useEffect } from "react";
 import styles from "./collectioncart.module.scss";
 import { useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { addFavoriteThunk, deleteFavoriteThunk } from "../../../redux/reducers/wishlistSlice";
 
 const Collectioncart = ({ item }) => {
-  const { name, category } = useParams();
+  const dispatch = useDispatch()
+  const [isFavorite, setIsFavorite] = useState(false);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+  
+    if (!token) {
+      setIsFavorite(favorites.includes(item._id));
+    }  else {
+      
+    }
+  }, [item._id]);
+  
+  const handleFavoriteToggle = () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      if (isFavorite) {
+        dispatch(deleteFavoriteThunk({ userId: "USER_ID", productId: item._id }));
+      } else {
+        dispatch(addFavoriteThunk({ userId: "USER_ID", productId: item._id }));
+      }
+    } else {
+      let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+  
+      if (isFavorite) {
+        favorites = favorites.filter((fav) => fav !== item._id);
+      } else {
+        favorites.push(item._id);
+      }
+      localStorage.setItem("favorites", JSON.stringify(favorites));
+    }
+    setIsFavorite(!isFavorite);
+  };
 
-  // Varsayılan olarak defaultColor'a göre bir variant bulalım
+  const { name, category } = useParams();
   const defaultVariant = item.variants.find(
     (variant) => variant.color === item.defaultColor
   );
 
-  // Eğer defaultColor'a göre bir variant varsa, o görselleri alalım.
-  // Yoksa, item.images'i alalım.
+  
   const initialImages = defaultVariant ? defaultVariant.images : item.images;
 
   const [selectedImage, setSelectedImage] = useState(initialImages[0]);
@@ -63,7 +96,6 @@ const Collectioncart = ({ item }) => {
         <h6>{item.price}.00 $</h6>
       </div>
 
-      {/* Variantli ürünler için renk seçimleri */}
       {item.variants.length > 0 && (
         <div className={styles.variantInfo}>
           {!isHovered ? (
@@ -83,24 +115,40 @@ const Collectioncart = ({ item }) => {
         </div>
       )}
 
-      <button className={styles.favori}>
+<button className={styles.favori} onClick={handleFavoriteToggle}>
+      {isFavorite ? (
+        // Dolu SVG
         <svg
           role="presentation"
           width="24"
           height="24"
           viewBox="0 0 24 24"
           fill="none"
+          className="favorite-icon filled"
         >
           <path
-            d="M19.0711 13.1421L13.4142 18.799C12.6332 19.58 11.3668 19.58 10.5858 18.799L4.92894 13.1421C2.97632 11.1895 2.97632 8.02369 4.92894 6.07106C6.88157 4.11844 10.0474 4.11844 12 6.07106C13.9526 4.11844 17.1185 4.11844 19.0711 6.07106C21.0237 8.02369 21.0237 11.1895 19.0711 13.1421Z"
-            fill="none"
+            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+            fill="black"
+          />
+        </svg>
+      ) : (
+        // Boş SVG
+        <svg
+          role="presentation"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          className="favorite-icon"
+        >
+          <path
+            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
             stroke="black"
             strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          ></path>
+          />
         </svg>
-      </button>
+      )}
+    </button>
     </div>
   );
 };

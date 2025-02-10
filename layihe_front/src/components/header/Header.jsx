@@ -201,7 +201,7 @@ const Header = () => {
             </li>
             <li>
               <Link>
-                cart<span>(0)</span>
+                Bag<span>(0)</span>
               </Link>
             </li>
           </ul>

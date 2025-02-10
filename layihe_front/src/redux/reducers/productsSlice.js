@@ -33,6 +33,7 @@ export const getNameCategoryThunk = createAsyncThunk(
   }
 );
 
+
 export const productsSlice = createSlice({
   name: "products",
   initialState: {
@@ -70,7 +71,7 @@ export const productsSlice = createSlice({
       .addCase(getNameCategoryThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "An error occurred";
-      });
+      })
   },
 });
 

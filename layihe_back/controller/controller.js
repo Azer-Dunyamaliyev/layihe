@@ -2,7 +2,8 @@ import userModel from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import productsModel from "../models/productsModel.js";
-
+import wishListModel from "../models/wishlistModel.js";
+import mongoose from "mongoose";
 // GET
 const getAllUsers = async (req, res) => {
   try {
@@ -62,6 +63,52 @@ const getAllProducts = async (req, res) => {
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
+
+// ALL FAVORI PRODUCTS
+const getWishList = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const favorites = await wishListModel.find({ userId }).populate("productId");
+
+    if (favorites.length === 0) {
+      return res.status(404).json({ message: "No favorite products found" });
+    }
+
+    res.json(favorites);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const wishlistStatus = async (req, res) => {
+  try {
+    // Kullanıcı ID'sini doğru şekilde almak
+    const userId = req.user.userId; // userId'nin doğru şekilde tanımlandığını ve auth middleware'den geldiğini kontrol et
+    const { productId } = req.params;
+
+    console.log(`Checking wishlist status for user: ${userId}, product: ${productId}`);
+
+    // MongoDB'nin ObjectId tipini kullanarak productId'yi dönüştür
+    const objectId = new mongoose.Types.ObjectId(productId);
+
+    // Kullanıcıya ait wishlist içinde bu ürün var mı kontrol et
+    const isFavorite = await wishListModel.findOne({ userId, productId: objectId });
+
+    console.log(`Product ${productId} is favorite: ${!!isFavorite}`); // Boolean olarak dönmesini sağla
+
+    // Boolean değeri döndür
+    return res.status(200).json({ isFavorite: !!isFavorite }); 
+  } catch (error) {
+    console.error("Wishlist status error:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
+
+
+
 
 //POST
 
@@ -190,6 +237,30 @@ const addProduct = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+const addWishlist = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { productId } = req.body;
+
+    if (!productId) {
+      return res.status(400).json({ message: "Product ID is required" });
+    }
+
+    const existingFavorite = await wishListModel.findOne({ userId, productId });
+    if (existingFavorite) {
+      return res.status(400).json({ message: "Product already in favorites" });
+    }
+
+    const newFavorite = new wishListModel({ userId, productId });
+    await newFavorite.save();
+
+    res.status(201).json(newFavorite);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -336,6 +407,23 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const deleteWishListItem = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const userId = req.user.userId;
+    const deletedFavorite = await wishListModel.findOneAndDelete({ userId, productId });
+
+    if (!deletedFavorite) {
+      return res.status(404).json({ message: "Favori ürün bulunamadı!" });
+    }
+
+    res.status(200).json({ message: "Favori ürün başarıyla silindi!" });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Sunucu hatası", error });
+  }
+};
+
 export {
   userRegister,
   userLogin,
@@ -349,4 +437,8 @@ export {
   getProducts,
   getAllProducts,
   addProduct,
+  getWishList,
+  addWishlist,
+  deleteWishListItem,
+  wishlistStatus,
 };
