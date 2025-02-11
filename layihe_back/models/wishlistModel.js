@@ -11,6 +11,16 @@ const wishlistSchema = mongoose.Schema({
     ref: "Product",
     required: true,
   },
+  selectedColor: {
+    type: String,
+    required: function() {
+      return this.productId && this.productId.variants && this.productId.variants.length > 1;
+    },
+  },
+  images: {
+    type: [String],  // Görselleri array olarak saklayacağız
+    required: true,  // Görsellerin olması zorunlu
+  },
 },{ timestamps: true });
 
 const wishListModel = mongoose.model('wishlist',wishlistSchema)

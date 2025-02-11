@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import productsModel from "../models/productsModel.js";
 import wishListModel from "../models/wishlistModel.js";
-import mongoose from "mongoose";
+
 // GET
 const getAllUsers = async (req, res) => {
   try {
@@ -67,47 +67,45 @@ const getAllProducts = async (req, res) => {
 // ALL FAVORI PRODUCTS
 const getWishList = async (req, res) => {
   try {
-    const userId = req.user.userId;
-
-    const favorites = await wishListModel.find({ userId }).populate("productId");
-
-    if (favorites.length === 0) {
-      return res.status(404).json({ message: "No favorite products found" });
+    const userId = req.user?.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Yetkilendirme hatası! Kullanıcı ID bulunamadı." });
     }
 
-    res.json(favorites);
+    // Kullanıcının favorilerini getirme
+    const favorites = await wishListModel.find({ userId }).populate({
+      path: "productId",
+      model: productsModel,
+    });
+
+    // Her favori için renk bilgisini kontrol et
+    const favoritesWithColor = favorites.map(favorite => {
+      const product = favorite.productId;
+      const selectedColor = product.variants ? product.variants.find(variant => variant.color === favorite.selectedColor) : null;
+      return { ...favorite.toObject(), selectedColor: selectedColor ? selectedColor.color : null };
+    });
+
+    res.json(favoritesWithColor);
   } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Favori Listesi Hatası:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
 const wishlistStatus = async (req, res) => {
   try {
-    // Kullanıcı ID'sini doğru şekilde almak
-    const userId = req.user.userId; // userId'nin doğru şekilde tanımlandığını ve auth middleware'den geldiğini kontrol et
+    const userId = req.user.userId;
     const { productId } = req.params;
-
-    console.log(`Checking wishlist status for user: ${userId}, product: ${productId}`);
-
-    // MongoDB'nin ObjectId tipini kullanarak productId'yi dönüştür
-    const objectId = new mongoose.Types.ObjectId(productId);
-
-    // Kullanıcıya ait wishlist içinde bu ürün var mı kontrol et
-    const isFavorite = await wishListModel.findOne({ userId, productId: objectId });
-
-    console.log(`Product ${productId} is favorite: ${!!isFavorite}`); // Boolean olarak dönmesini sağla
-
-    // Boolean değeri döndür
-    return res.status(200).json({ isFavorite: !!isFavorite }); 
+    if (!userId || !productId) {
+      return res.status(400).json({ message: "User ID or Product ID is missing" });
+    }
+    const isFavorite = await wishListModel.findOne({ userId, productId });
+    return res.status(200).json({ isFavorite: !!isFavorite });
   } catch (error) {
-    console.error("Wishlist status error:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
-
-
-
 
 
 //POST
@@ -243,18 +241,43 @@ const addProduct = async (req, res) => {
 const addWishlist = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { productId } = req.body;
+    const { productId, selectedColor } = req.body;
 
     if (!productId) {
       return res.status(400).json({ message: "Product ID is required" });
     }
 
-    const existingFavorite = await wishListModel.findOne({ userId, productId });
-    if (existingFavorite) {
-      return res.status(400).json({ message: "Product already in favorites" });
+    const product = await productsModel.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
     }
 
-    const newFavorite = new wishListModel({ userId, productId });
+    if (product.variants && product.variants.length > 1 && !selectedColor) {
+      return res.status(400).json({ message: "Selected color is required for variant products" });
+    }
+
+    let productImages = product.images;
+    if (product.variants && selectedColor) {
+      const selectedVariant = product.variants.find(variant => variant.color === selectedColor);
+      if (selectedVariant) {
+        productImages = selectedVariant.images;
+      }
+    }
+
+    // Favori kontrolü, aynı ürün ve renk için engellemeyi sağlıyor
+    const existingFavorite = await wishListModel.findOne({ userId, productId, selectedColor });
+    if (existingFavorite) {
+      return res.status(400).json({ message: "This product with the selected color is already in favorites" });
+    }
+
+    const newFavorite = new wishListModel({
+      userId,
+      productId,
+      selectedColor,
+      images: productImages,
+    });
+
     await newFavorite.save();
 
     res.status(201).json(newFavorite);
@@ -263,6 +286,10 @@ const addWishlist = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
+
+
+
+
 
 //PUT
 
@@ -354,7 +381,6 @@ const updatePassword = async (req, res) => {
 };
 
 const updatePhone = async (req, res) => {
-  console.log("📥 Gelen veri:", req.body); // Test için
 
   const { phone, countryCode } = req.body;
   const userId = req.user.userId;
@@ -366,16 +392,13 @@ const updatePhone = async (req, res) => {
   try {
     const updatedUser = await userModel.findByIdAndUpdate(
       userId,
-      { phone, countryCode }, // 🔥 Güncellenen değerler
-      { new: true } // Güncellenmiş datayı döndür
+      { phone, countryCode },
+      { new: true }
     );
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
     }
-
-    console.log("✅ Güncellenmiş Kullanıcı:", updatedUser); // Backend'de güncellendi mi kontrol edelim
-
     res.status(200).json({
       message: "Phone updated successfully!",
       phone: updatedUser.phone,
@@ -411,18 +434,65 @@ const deleteWishListItem = async (req, res) => {
   try {
     const { productId } = req.params;
     const userId = req.user.userId;
-    const deletedFavorite = await wishListModel.findOneAndDelete({ userId, productId });
+    // Doğrudan body'den alınacak şekilde
+    const { selectedColor } = req.body; 
 
-    if (!deletedFavorite) {
+    console.log("BODY:", req.body);  // Veriyi loglayarak kontrol edin
+
+    console.log("Gelen silme isteği: ", { userId, productId, selectedColor });
+
+    if (!selectedColor) {
+      console.log("selectedColor boş, tüm ürünü siliyoruz.");
+      const deletedFavorite = await wishListModel.findOneAndDelete({ userId, productId });
+
+      if (!deletedFavorite) {
+        return res.status(404).json({ message: "Favori ürün bulunamadı!" });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Favori ürün başarıyla silindi!",
+        productId,
+      });
+    }
+
+    const updatedFavorite = await wishListModel.findOneAndUpdate(
+      { userId, productId },
+      { $pull: { colors: selectedColor } },
+      { new: true }
+    );
+
+    console.log("Güncellenmiş favori: ", updatedFavorite);
+
+    if (!updatedFavorite) {
       return res.status(404).json({ message: "Favori ürün bulunamadı!" });
     }
 
-    res.status(200).json({ message: "Favori ürün başarıyla silindi!" });
+    if (updatedFavorite.colors.length === 0) {
+      await wishListModel.findOneAndDelete({ userId, productId });
+      console.log("Ürün tamamen silindi.");
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `${selectedColor} rengi favorilerden silindi!`,
+      productId,
+    });
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Silme sırasında hata:", error);
     res.status(500).json({ message: "Sunucu hatası", error });
   }
 };
+
+
+
+
+
+
+
+
+
+
 
 export {
   userRegister,

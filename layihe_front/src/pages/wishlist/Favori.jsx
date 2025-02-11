@@ -1,8 +1,11 @@
 import React from 'react'
-import styles from './favori.module.scss'
+import Layout from '../../layout/Layout'
+import Favoricarts from './favori_carts/Favoricarts'
 const Favori = () => {
   return (
-    <div>Favori</div>
+    <Layout>
+      <Favoricarts />
+    </Layout>
   )
 }
 

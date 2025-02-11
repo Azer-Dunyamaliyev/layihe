@@ -5,6 +5,7 @@ import connectDB from './config/connection.js';
 import userRoutes from './routes/auth.js';
 import cookieParser from 'cookie-parser';
 import productsRouter from './routes/productsRoute.js'
+import wishlistRouter from './routes/wihslistRoute.js'
 configDotenv();
 const app = express();
 
@@ -27,6 +28,7 @@ app.use(cors(corsOptions));
 // Route
 app.use('/users', userRoutes);
 app.use("/products", productsRouter);
+app.use("/favorites", wishlistRouter);
 
 
 // DB Bağlantısı

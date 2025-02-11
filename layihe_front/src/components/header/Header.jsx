@@ -197,7 +197,7 @@ const Header = () => {
               </li>
             )}
             <li>
-              <Link>Favorite products</Link>
+              <Link to={'/wishlist'}>Favorite products</Link>
             </li>
             <li>
               <Link>
@@ -244,7 +244,7 @@ const Header = () => {
               </Link>
             </li>
             <li>
-              <Link>
+              <Link to={'/wishlist'}>
                 <svg
                   width="24"
                   height="24"
