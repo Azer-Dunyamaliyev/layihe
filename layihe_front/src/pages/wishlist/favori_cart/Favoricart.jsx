@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styles from "./favoricart.module.scss";
 
-const Favoricart = ({ item,handleDeleteFavorite }) => {
+const Favoricart = ({ item, handleDeleteFavorite }) => {
   const { productId, selectedColor } = item;
   const [isHovered, setIsHovered] = useState(false);
   if (!productId) return null;
@@ -30,13 +30,21 @@ const Favoricart = ({ item,handleDeleteFavorite }) => {
   const selectedVariant = productId.variants
     ? productId.variants.find((variant) => variant.color === selectedColor)
     : null;
-  
+
   const selectedImage = getImage(selectedVariant);
   const hoverImage = getHoverImage(selectedVariant);
 
   return (
-    <div className={styles.cart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-      <img src={isHovered ? hoverImage : selectedImage} alt={productId.name} width="100" />
+    <div
+      className={styles.cart}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <img
+        src={isHovered ? hoverImage : selectedImage}
+        alt={productId.name}
+        width="100"
+      />
       <div className={styles.texts}>
         <h5>{productId.description}</h5>
         <h6>{productId.price}.00$</h6>
@@ -48,12 +56,15 @@ const Favoricart = ({ item,handleDeleteFavorite }) => {
           height="24"
           viewBox="0 0 24 24"
           fill="none"
-          className="favorite-icon filled"
         >
           <path
-            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-            fill="black"
-          />
+            d="M19.0711 13.1421L13.4142 18.799C12.6332 19.58 11.3668 19.58 10.5858 18.799L4.92894 13.1421C2.97632 11.1895 2.97632 8.02369 4.92894 6.07106C6.88157 4.11844 10.0474 4.11844 12 6.07106C13.9526 4.11844 17.1185 4.11844 19.0711 6.07106C21.0237 8.02369 21.0237 11.1895 19.0711 13.1421Z"
+            fill="#e04f4f"
+            stroke="#e04f4f"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          ></path>
         </svg>
       </button>
     </div>

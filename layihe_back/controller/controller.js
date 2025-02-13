@@ -67,6 +67,7 @@ const getAllProducts = async (req, res) => {
 // ALL FAVORI PRODUCTS
 const getWishList = async (req, res) => {
   try {
+    // Kullanıcı ID'si, kullanıcı doğrulaması üzerinden alınacak (örneğin JWT token ile)
     const userId = req.user?.userId;
     
     if (!userId) {
@@ -82,16 +83,27 @@ const getWishList = async (req, res) => {
     // Her favori için renk bilgisini kontrol et
     const favoritesWithColor = favorites.map(favorite => {
       const product = favorite.productId;
-      const selectedColor = product.variants ? product.variants.find(variant => variant.color === favorite.selectedColor) : null;
-      return { ...favorite.toObject(), selectedColor: selectedColor ? selectedColor.color : null };
+      
+      // Eğer ürün varyantları varsa, seçilen rengin doğru olduğuna emin ol
+      const selectedColor = product.variants 
+        ? product.variants.find(variant => variant.color === favorite.selectedColor) 
+        : null;
+
+      // Favoriyi dönmeden önce renk bilgisini ekliyoruz
+      return {
+        ...favorite.toObject(), 
+        selectedColor: selectedColor ? selectedColor.color : null 
+      };
     });
 
+    // Favori listesi ile birlikte renk bilgilerini döndür
     res.json(favoritesWithColor);
   } catch (error) {
     console.error("Favori Listesi Hatası:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 const wishlistStatus = async (req, res) => {
   try {
@@ -253,6 +265,7 @@ const addWishlist = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
+    // Eğer ürün variantlıysa ve renk seçilmemişse hata ver
     if (product.variants && product.variants.length > 1 && !selectedColor) {
       return res.status(400).json({ message: "Selected color is required for variant products" });
     }
@@ -271,6 +284,7 @@ const addWishlist = async (req, res) => {
       return res.status(400).json({ message: "This product with the selected color is already in favorites" });
     }
 
+    // Yeni favori kaydı oluşturuluyor
     const newFavorite = new wishListModel({
       userId,
       productId,
@@ -278,14 +292,16 @@ const addWishlist = async (req, res) => {
       images: productImages,
     });
 
-    await newFavorite.save();
+    // Kaydetme işlemi
+    const savedFavorite = await newFavorite.save();
 
-    res.status(201).json(newFavorite);
+    res.status(201).json(savedFavorite);
   } catch (error) {
     console.error("Error:", error);
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 
 
