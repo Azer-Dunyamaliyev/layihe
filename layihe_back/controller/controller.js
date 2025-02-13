@@ -434,16 +434,18 @@ const deleteWishListItem = async (req, res) => {
   try {
     const { productId } = req.params;
     const userId = req.user.userId;
-    // Doğrudan body'den alınacak şekilde
-    const { selectedColor } = req.body; 
+    const { selectedColor } = req.body;
 
-    console.log("BODY:", req.body);  // Veriyi loglayarak kontrol edin
-
+    console.log("BODY:", req.body); // Veriyi loglayarak kontrol edin
     console.log("Gelen silme isteği: ", { userId, productId, selectedColor });
 
+    // Eğer selectedColor gönderilmemişse, tüm favori ürün silinecek
     if (!selectedColor) {
       console.log("selectedColor boş, tüm ürünü siliyoruz.");
-      const deletedFavorite = await wishListModel.findOneAndDelete({ userId, productId });
+      const deletedFavorite = await wishListModel.findOneAndDelete({
+        userId,
+        productId,
+      });
 
       if (!deletedFavorite) {
         return res.status(404).json({ message: "Favori ürün bulunamadı!" });
@@ -456,6 +458,7 @@ const deleteWishListItem = async (req, res) => {
       });
     }
 
+    // Eğer selectedColor varsa, renk dizisinden çıkarılacak
     const updatedFavorite = await wishListModel.findOneAndUpdate(
       { userId, productId },
       { $pull: { colors: selectedColor } },
@@ -468,6 +471,7 @@ const deleteWishListItem = async (req, res) => {
       return res.status(404).json({ message: "Favori ürün bulunamadı!" });
     }
 
+    // Eğer colors dizisi boşsa, ürünü tamamen silelim
     if (updatedFavorite.colors.length === 0) {
       await wishListModel.findOneAndDelete({ userId, productId });
       console.log("Ürün tamamen silindi.");
@@ -483,6 +487,7 @@ const deleteWishListItem = async (req, res) => {
     res.status(500).json({ message: "Sunucu hatası", error });
   }
 };
+
 
 
 

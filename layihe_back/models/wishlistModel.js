@@ -11,6 +11,10 @@ const wishlistSchema = mongoose.Schema({
     ref: "Product",
     required: true,
   },
+  colors: {
+    type: [String],  // Favori renkler için bir dizi
+    default: [],     // Başlangıçta boş olabilir
+  },
   selectedColor: {
     type: String,
     required: function() {

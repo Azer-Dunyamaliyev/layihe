@@ -11,14 +11,21 @@ import {
 const Collectioncart = ({ item }) => {
   const dispatch = useDispatch();
   const [favoriteStatus, setFavoriteStatus] = useState({});
-  const [selectedColor, setSelectedColor] = useState(item.defaultColor);
+  const [selectedColor, setSelectedColor] = useState(
+    item.variants && item.variants.length > 1 ? item.defaultColor : ""
+  );
+  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
-    if (item.variants.length > 0) {
-      const defaultColor = item.variants[0].color;
-      setSelectedColor(defaultColor);
+    const selectedVariant = item.variants.find(
+      (variant) => variant.color === selectedColor
+    );
+
+    if (selectedVariant) {
+      setSelectedImage(selectedVariant.images[0]);
+      setHoverImage(selectedVariant.images[1] || selectedVariant.images[0]);
     }
-  }, [item.variants]);
+  }, [selectedColor, item.variants]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -27,7 +34,7 @@ const Collectioncart = ({ item }) => {
       const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
       const colorFavorites = {};
 
-      favorites.forEach(fav => {
+      favorites.forEach((fav) => {
         if (fav.productId === item._id) {
           colorFavorites[fav.selectedColor] = true;
         }
@@ -47,46 +54,57 @@ const Collectioncart = ({ item }) => {
     }
   }, [item._id, dispatch]);
 
-  const handleFavoriteToggle = (color) => {
-    console.log("Selected color before dispatch:", color); // Seçilen renk burada kontrol ediliyor
+  const handleFavoriteToggle = (color = "") => {
+    console.log("Clicked color:", color);
   
-    const selectedVariant = item.variants.find((variant) => variant.color === color);
-    
-    const selectedColorToSend = color || "default"; // Seçilen rengi ya da varsayılan değeri gönder
-    console.log("Selected Color to Send:", selectedColorToSend); // Burada da kontrol edelim
-    
+    const selectedColorToSend = color || item.defaultColor;
+    console.log("Selected Color to Send:", selectedColorToSend);
+  
     const productData = {
       userId: "USER_ID",
       productId: item._id,
-      selectedColor: selectedColorToSend, // Bu doğru şekilde gönderilecek
-      images: selectedVariant ? selectedVariant.images : item.images,
+      selectedColor: selectedColorToSend,
+      images: item.images,
     };
   
-    console.log("Product Data before dispatch:", productData); // Product Data'nın doğru geldiğini kontrol et
+    console.log("Product Data before dispatch:", productData);
   
     const token = localStorage.getItem("token");
   
     if (token) {
       if (favoriteStatus[selectedColorToSend]) {
-        dispatch(deleteFavoriteThunk(productData)); // Burada veri Redux'a gönderiliyor
+        dispatch(deleteFavoriteThunk(productData)).then(() => {
+          setFavoriteStatus((prev) => ({
+            ...prev,
+            [selectedColorToSend]: false,
+          }));
+          setIsFavorite(false); // SVG'yi boş yapmak için
+        });
       } else {
-        dispatch(addFavoriteThunk(productData));
+        dispatch(addFavoriteThunk(productData)).then(() => {
+          setFavoriteStatus((prev) => ({
+            ...prev,
+            [selectedColorToSend]: true,
+          }));
+          setIsFavorite(true); // SVG'yi doldurmak için
+        });
       }
     }
   };
   
-  
-  
 
   const handleVariantChange = (color) => {
-    if (!color) {
-      console.error("Selected color is invalid:", color);
-      return;
-    }
+    if (!color) return;
 
-    const selectedVariant = item.variants.find(variant => variant.color === color);
+    setSelectedColor(color);
+
+    const selectedVariant = item.variants.find(
+      (variant) => variant.color === color
+    );
+
     if (selectedVariant) {
-      setSelectedColor(color);
+      setSelectedImage(selectedVariant.images[0]);
+      setHoverImage(selectedVariant.images[1] || selectedVariant.images[0]);
     }
   };
 
@@ -150,20 +168,20 @@ const Collectioncart = ({ item }) => {
         </div>
       )}
 
-      <button className={styles.favori} onClick={() => handleFavoriteToggle(selectedColor)}>
+      <button
+        className={styles.favori}
+        onClick={() => handleFavoriteToggle(selectedColor)}
+      >
         {favoriteStatus[selectedColor] ? (
           <svg
             role="presentation"
             width="24"
             height="24"
             viewBox="0 0 24 24"
-            fill="none"
+            fill="black"
             className="favorite-icon filled"
           >
-            <path
-              d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-              fill="black"
-            />
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
           </svg>
         ) : (
           <svg
