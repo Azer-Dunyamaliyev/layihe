@@ -265,7 +265,6 @@ const addWishlist = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // Eğer ürün variantlıysa ve renk seçilmemişse hata ver
     if (product.variants && product.variants.length > 1 && !selectedColor) {
       return res.status(400).json({ message: "Selected color is required for variant products" });
     }
@@ -284,7 +283,6 @@ const addWishlist = async (req, res) => {
       return res.status(400).json({ message: "This product with the selected color is already in favorites" });
     }
 
-    // Yeni favori kaydı oluşturuluyor
     const newFavorite = new wishListModel({
       userId,
       productId,
@@ -292,16 +290,14 @@ const addWishlist = async (req, res) => {
       images: productImages,
     });
 
-    // Kaydetme işlemi
-    const savedFavorite = await newFavorite.save();
+    await newFavorite.save();
 
-    res.status(201).json(savedFavorite);
+    res.status(201).json(newFavorite);
   } catch (error) {
     console.error("Error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "Server error", error });
   }
 };
-
 
 
 

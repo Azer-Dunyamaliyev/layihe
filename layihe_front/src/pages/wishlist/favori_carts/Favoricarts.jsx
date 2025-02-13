@@ -19,7 +19,7 @@ const Favoricarts = () => {
       .then(() => setErrorMessage('')) // Eğer başarılı ise hata mesajını temizle
       .catch((err) => setErrorMessage(err.message)); // Hata durumunda mesajı set et
   };
-  
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
