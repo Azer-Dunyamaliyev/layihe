@@ -8,7 +8,7 @@ import {
   wishlistStatus,
 } from "../../../redux/reducers/wishlistSlice";
 
-const Collectioncart = ({ item }) => {
+const Collectioncart = ({ item, handleDetail }) => {
   const dispatch = useDispatch();
   const [selectedColor, setSelectedColor] = useState(
     item.variants && item.variants.length > 1 ? item.defaultColor : ""
@@ -16,19 +16,18 @@ const Collectioncart = ({ item }) => {
   const { status, loading } = useSelector((state) => state.favorites);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // Varsayılan renk için favori durumu kontrolü
   useEffect(() => {
     const token = localStorage.getItem("token");
-  
     if (!token) {
       const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-      const productFavorites = favorites.filter((fav) => fav.productId === item._id);
+      
+      const isAnyColorFavorite = favorites.some(
+        (fav) => fav.productId === item._id
+      );
   
-      // Aynı ürünün herhangi bir rengi favoride mi?
-      const isAnyColorFavorite = productFavorites.length > 0;
       setIsFavorite(isAnyColorFavorite);
     } else {
-      dispatch(wishlistStatus({ productId: item._id, selectedColor: "" })) // Boş gönderiyoruz, tüm renkleri kontrol edecek
+      dispatch(wishlistStatus({ productId: item._id, selectedColor: "" }))
         .then((result) => {
           setIsFavorite(result.payload || false);
         })
@@ -39,53 +38,72 @@ const Collectioncart = ({ item }) => {
   }, [item._id, dispatch]);
   
 
-  // Renk değiştirme fonksiyonu
   const handleVariantChange = (color) => {
     if (!color) return;
-  
     setSelectedColor(color);
-  
-    // Seçilen renk için uygun görselleri bul ve güncelle
-    const selectedVariant = item.variants.find((variant) => variant.color === color);
+    const selectedVariant = item.variants.find(
+      (variant) => variant.color === color
+    );
     if (selectedVariant) {
-      setSelectedImage(selectedVariant.images[0]); // İlk görseli ana görsel olarak ata
-      setHoverImage(selectedVariant.images[1] || selectedVariant.images[0]); // Hover görselini güncelle
+      setSelectedImage(selectedVariant.images[0]);
+      setHoverImage(selectedVariant.images[1] || selectedVariant.images[0]);
     }
   };
   
-
-  // Favori durumunun değiştirilmesi
   const handleFavoriteToggle = (color = "") => {
     const selectedColorToSend = color || item.defaultColor;
-
     const productData = {
-      userId: "USER_ID", // Gerçek kullanıcı ID'si ile değiştirin
       productId: item._id,
       selectedColor: selectedColorToSend,
       images: item.images,
+      price: item.price,
+      description: item.description,
+      imagesLocal: item.images && item.images.length > 0 ? item.images : item.variants,
+      defaultColor: item.defaultColor ? item.defaultColor : ""
     };
-
+  
     const token = localStorage.getItem("token");
-
     if (token) {
       if (isFavorite) {
         dispatch(deleteFavoriteThunk(productData)).then(() => {
-          setIsFavorite(false); // SVG'yi boş yapmak için
+          setIsFavorite(false);
         });
       } else {
         dispatch(addFavoriteThunk(productData)).then(() => {
-          setIsFavorite(true); // SVG'yi doldurmak için
+          setIsFavorite(true);
         });
       }
+    } else {
+      // Favori listesini localStorage'dan çek
+      const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+      
+      // **Ürün ID ve renk bazında kontrol et**
+      const index = favorites.findIndex(
+        (fav) =>
+          fav.productId === productData.productId &&
+          fav.selectedColor === productData.selectedColor
+      );
+  
+      if (index !== -1) {
+        // Eğer zaten varsa, listeden kaldır
+        favorites.splice(index, 1);
+        setIsFavorite(false);
+      } else {
+        // Yeni ürünü listeye ekle
+        favorites.push(productData);
+        setIsFavorite(true);
+      }
+  
+      // Güncellenmiş favori listesini localStorage'a kaydet
+      localStorage.setItem("favorites", JSON.stringify(favorites));
     }
   };
+  
 
-  // Resimlerin güncellenmesi
   const { name, category } = useParams();
   const defaultVariant = item.variants.find(
     (variant) => variant.color === item.defaultColor
   );
-
   const initialImages = defaultVariant ? defaultVariant.images : item.images;
   const [selectedImage, setSelectedImage] = useState(initialImages[0]);
   const [hoverImage, setHoverImage] = useState(
@@ -106,13 +124,17 @@ const Collectioncart = ({ item }) => {
     }
   }, [category, name, item.category, item.name, item.images, defaultVariant]);
 
+  const handleImageClick = () => {
+    handleDetail(selectedColor);
+  };
+
   return (
     <div
       className={styles.cart}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className={styles.images}>
+      <div className={styles.images} onClick={handleImageClick}>
         <img src={selectedImage} alt="Selected" className={styles.mainImage} />
         <img src={hoverImage} alt="Hover Image" className={styles.hoverImage} />
       </div>
@@ -146,30 +168,12 @@ const Collectioncart = ({ item }) => {
         onClick={() => handleFavoriteToggle(selectedColor)}
       >
         {isFavorite ? (
-          <svg
-            role="presentation"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="black"
-            className="favorite-icon filled"
-          >
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#e04f4f">
+            <path d="M19.0711 13.1421L13.4142 18.799C12.6332 19.58 11.3668 19.58 10.5858 18.799L4.92894 13.1421C2.97632 11.1895 2.97632 8.02369 4.92894 6.07106C6.88157 4.11844 10.0474 4.11844 12 6.07106C13.9526 4.11844 17.1185 4.11844 19.0711 6.07106C21.0237 8.02369 21.0237 11.1895 19.0711 13.1421Z" />
           </svg>
         ) : (
-          <svg
-            role="presentation"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            className="favorite-icon"
-          >
-            <path
-              d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-              stroke="black"
-              strokeWidth="1.5"
-            />
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black">
+            <path d="M19.0711 13.1421L13.4142 18.799C12.6332 19.58 11.3668 19.58 10.5858 18.799L4.92894 13.1421C2.97632 11.1895 2.97632 8.02369 4.92894 6.07106C6.88157 4.11844 10.0474 4.11844 12 6.07106C13.9526 4.11844 17.1185 4.11844 19.0711 6.07106C21.0237 8.02369 21.0237 11.1895 19.0711 13.1421Z" />
           </svg>
         )}
       </button>

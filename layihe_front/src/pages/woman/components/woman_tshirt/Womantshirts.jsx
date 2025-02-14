@@ -13,7 +13,7 @@ const Womantshirts = () => {
         <picture>
           <img src={tshirt2} alt="jeans2" />
         </picture>
-        <button onClick={() => navigate("/category/woman/t-shirt")}>Jeans</button>
+        <button onClick={() => navigate("/category/woman/t-shirt")}>T-shirts</button>
       </div>
     );
 }

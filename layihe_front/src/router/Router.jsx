@@ -8,6 +8,8 @@ import Detail from '../pages/account/components/detail/Detail'
 import Man from '../pages/man/Man'
 import Collection from '../components/collection/Collection'
 import Woman from '../pages/woman/Woman'
+import Favori from '../pages/wishlist/Favori'
+import Detailpro from '../pages/detail/Detailpro'
 const Router = () => {
   return (
     <BrowserRouter>
@@ -21,7 +23,8 @@ const Router = () => {
         <Route path='/woman' element={<Woman />} />
         <Route path='/category/:name' element={<Collection />} />
         <Route path='/category/:name/:category' element={<Collection />} />
-
+        <Route path='/wishlist' element={<Favori />} />
+        <Route path='/category/:name/detail-collection' element={<Detailpro />} />
       </Routes>
     </BrowserRouter>
   )

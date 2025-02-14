@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styles from "./collectioncarts.module.scss";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getCategoryThunk,
@@ -8,21 +8,13 @@ import {
 } from "../../../redux/reducers/productsSlice";
 import Collectioncart from "../collection_cart/Collectioncart";
 
-const Collectioncarts = () => {
+const Collectioncarts = ({ padd }) => {
+  const navigate = useNavigate()
   const { name, category } = useParams();
   const dispatch = useDispatch();
   const { products, loading, error } = useSelector((state) => state.products);
   const [filteredProducts, setFilteredProducts] = useState([]);
-
-  const shuffleArray = (array) => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  };
-
+  
   useEffect(() => {
     if (name && !category) {
       dispatch(getCategoryThunk({ name }));
@@ -41,18 +33,24 @@ const Collectioncarts = () => {
       setFilteredProducts(products);
     }
   }, [category, products]);
-  const shuffledProducts = shuffleArray(filteredProducts);
+
+  const handleDetail = (data, selectedColor) => {
+    navigate(`/category/${data.name}/detail-collection`, { 
+      state: { ...data, selectedColor } 
+    });
+  }
+  
 
   if(error) return <p style={{textAlign: "center"}}>No products available</p>
   return (
-    <div className={styles.fashion}>
+    <div className={styles.fashion} style={{padding: padd}}>
       <div className="container">
         <div className={styles.content}>
-          {shuffledProducts.length > 0 ? (
+          {filteredProducts.length > 0 ? (
             <div className={styles.carts}>
-              {shuffledProducts &&
-                shuffledProducts.map((item, index) => (
-                  <Collectioncart key={index} item={item} />
+              {filteredProducts &&
+                filteredProducts.map((item, index) => (
+                  <Collectioncart key={index} item={item} handleDetail = {(selectedColor) => handleDetail(item,selectedColor)}/>
                 ))}
             </div>
           ) : (<p style={{textAlign: "center"}}>No products available</p>)}
