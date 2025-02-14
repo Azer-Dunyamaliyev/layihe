@@ -35,7 +35,7 @@ const getProducts = async (req, res) => {
     if (category) filter.category = category;
     if (subcategory) filter.subcategory = subcategory;
 
-    const products = await productsModel.find(filter);
+    const products = await productsModel.find(filter).sort({ _id: -1 }); // Yeni eklenenler en önde olacak
 
     res.json(products);
   } catch (error) {
@@ -44,6 +44,7 @@ const getProducts = async (req, res) => {
   }
 };
 
+
 const getAllProducts = async (req, res) => {
   try {
     const { name } = req.params; // URL'den name parametresini al
@@ -51,7 +52,7 @@ const getAllProducts = async (req, res) => {
     const filter = {};
     if (name) filter.name = name; // Eğer name parametresi varsa filtreye ekle
 
-    const products = await productsModel.find(filter);
+    const products = await productsModel.find(filter).sort({ _id: -1 }); // Yeni eklenenler önce gelecek
 
     if (products.length === 0) {
       return res.status(404).json({ message: "Hiç ürün bulunamadı" });
@@ -63,6 +64,7 @@ const getAllProducts = async (req, res) => {
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
+
 
 // ALL FAVORI PRODUCTS
 const getWishList = async (req, res) => {
@@ -265,6 +267,7 @@ const addWishlist = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
+    // Eğer ürün variantlıysa ve renk seçilmemişse hata ver
     if (product.variants && product.variants.length > 1 && !selectedColor) {
       return res.status(400).json({ message: "Selected color is required for variant products" });
     }
@@ -283,6 +286,7 @@ const addWishlist = async (req, res) => {
       return res.status(400).json({ message: "This product with the selected color is already in favorites" });
     }
 
+    // Yeni favori kaydı oluşturuluyor
     const newFavorite = new wishListModel({
       userId,
       productId,
@@ -290,14 +294,16 @@ const addWishlist = async (req, res) => {
       images: productImages,
     });
 
-    await newFavorite.save();
+    // Kaydetme işlemi
+    const savedFavorite = await newFavorite.save();
 
-    res.status(201).json(newFavorite);
+    res.status(201).json(savedFavorite);
   } catch (error) {
     console.error("Error:", error);
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 
 
