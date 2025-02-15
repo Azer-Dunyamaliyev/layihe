@@ -9,12 +9,12 @@ import {
 import Collectioncart from "../collection_cart/Collectioncart";
 
 const Collectioncarts = ({ padd }) => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { name, category } = useParams();
   const dispatch = useDispatch();
   const { products, loading, error } = useSelector((state) => state.products);
   const [filteredProducts, setFilteredProducts] = useState([]);
-  
+
   useEffect(() => {
     if (name && !category) {
       dispatch(getCategoryThunk({ name }));
@@ -35,25 +35,32 @@ const Collectioncarts = ({ padd }) => {
   }, [category, products]);
 
   const handleDetail = (data, selectedColor) => {
-    navigate(`/category/${data.name}/detail-collection`, { 
-      state: { ...data, selectedColor } 
+    const colorToSend = selectedColor || data.defaultColor;
+    navigate(`/category/${data.name}/detail-collection`, {
+      state: { ...data, selectedColor: colorToSend },
     });
-  }
-  
+  };
 
-  if(error) return <p style={{textAlign: "center"}}>No products available</p>
+  if (error)
+    return <p style={{ textAlign: "center" }}>No products available</p>;
   return (
-    <div className={styles.fashion} style={{padding: padd}}>
+    <div className={styles.fashion} style={{ padding: padd }}>
       <div className="container">
         <div className={styles.content}>
           {filteredProducts.length > 0 ? (
             <div className={styles.carts}>
               {filteredProducts &&
                 filteredProducts.map((item, index) => (
-                  <Collectioncart key={index} item={item} handleDetail = {(selectedColor) => handleDetail(item,selectedColor)}/>
+                  <Collectioncart
+                    key={index}
+                    item={item}
+                    handleDetail={(selectedColor) => handleDetail(item, selectedColor)}
+                  />
                 ))}
             </div>
-          ) : (<p style={{textAlign: "center"}}>No products available</p>)}
+          ) : (
+            <p style={{ textAlign: "center" }}>No products available</p>
+          )}
         </div>
       </div>
     </div>

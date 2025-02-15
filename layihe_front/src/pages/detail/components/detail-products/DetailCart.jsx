@@ -1,35 +1,27 @@
 import React, { useState, useEffect, useRef } from "react";
 import styles from "./detailcart.module.scss";
-import { useLocation } from "react-router-dom";
 import ImageZoom from "react-image-zooom";
 
-const DetailCart = () => {
-  const postData = useLocation();
-  const data = postData.state;
-
+const DetailCart = ({ data, selectedImage, setSelectedImage, selectedColor }) => {
+  
   const images =
     data?.variants?.length > 0
-      ? data?.variants.find((v) => v.color === data.selectedColor)?.images || []
+      ? data?.variants.find((v) => v.color === selectedColor)?.images || []
       : data?.images || [];
 
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [selectedImage, setSelectedImage] = useState(null);
   const imageRef = useRef(null);
 
   useEffect(() => {
     if (images.length > 0) {
-      setSelectedImage(images[selectedIndex]);
+      setSelectedImage(images[0]); 
+      setSelectedIndex(0);
     }
-  }, [images, selectedIndex]);
-
-  useEffect(() => {
-    if (imageRef.current) {
-      setSelectedImage(images[selectedIndex]);
-    }
-  }, [selectedIndex]);
+  }, [selectedColor, images]);
 
   const handleImageClick = (index) => {
     setSelectedIndex(index);
+    setSelectedImage(images[index]);
   };
 
   if (!selectedImage) {
@@ -59,7 +51,7 @@ const DetailCart = () => {
                 <div className={styles.main_images}>
                   <div className={styles.zoomContainer} ref={imageRef}>
                     <ImageZoom
-                      src={images[selectedIndex]}
+                      src={selectedImage}
                       zoomScale={2}
                       width={500}
                       height={500}
@@ -71,7 +63,6 @@ const DetailCart = () => {
           ) : (
             <p>No images available</p>
           )}
-          <div className={styles.texts}></div>
         </div>
       </div>
     </div>
