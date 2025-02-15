@@ -6,6 +6,7 @@
     .cart_detail {
       display: flex;
       .cart {
+        width: 500px;
         display: flex;
         .images_col {
           display: flex;
@@ -36,14 +37,47 @@
         }
 
         .main_images {
-          width: 500px;
-          height: 750px;
+          width: 100%;
+          height: auto;
           object-fit: cover;
           object-position: center;
           img {
             transition: transform 0.2s ease, cursor 0.2s ease; 
             transform-origin: center center;  
             cursor: zoom-in; 
+          }
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width:1100px) {
+  .detail {
+    .content {
+      .cart_detail {
+        .cart {
+          .main_images {
+            width: 100%;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width:1100px) {
+  .detail {
+    .content {
+      .cart_detail {
+        .cart {
+          width: 500px;
+          .main_images {
+            width: 100%;
+            height: auto;
+            img {
+              width: 100%;
+            }
           }
         }
       }
