@@ -6,25 +6,31 @@ import Drawer from "react-modern-drawer";
 import "react-modern-drawer/dist/index.css";
 import { useDispatch, useSelector } from "react-redux";
 import { getMeThunk, logout } from "../../redux/reducers/userSlice";
+import { getUserOrders } from "../../redux/reducers/basketSlice";
 
 const Header = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { token, username } = useSelector((state) => state.users);
   const [isOpenSea, setIsOpenSea] = useState(false);
   const [isOpen, setIsOpen] = React.useState(false);
-  const { me,loading } = useSelector((state) => state.users)
+  const { me, loading } = useSelector((state) => state.users);
+  const { orders, error } = useSelector((state) => state.basket);
+
   const toggleDrawer = () => {
     setIsOpen((prevState) => !prevState);
   };
+
   const handleLogout = () => {
-    navigate('/')
+    navigate("/");
     dispatch(logout());
   };
 
   useEffect(() => {
-    dispatch(getMeThunk())
-  },[dispatch])
+    dispatch(getMeThunk());
+    dispatch(getUserOrders());
+    
+  }, [dispatch]);
 
   return (
     <div className={styles.header}>
@@ -35,7 +41,9 @@ const Header = () => {
             className={`${styles.search_form} ${
               !isOpenSea ? styles.active : ""
             }`}
-            style={{width: token ? "calc(100% - 320px)" : "calc(100% - 283px)"}}
+            style={{
+              width: token ? "calc(100% - 320px)" : "calc(100% - 283px)",
+            }}
             onSubmit={(e) => e.preventDefault()}
           >
             <input type="text" placeholder="SEARCH" />
@@ -143,7 +151,7 @@ const Header = () => {
                 <div className={styles.module}>
                   {loading ? <h3>Loading...</h3> : <h3>{me.username}</h3>}
                   <ul>
-                    <li onClick={() => navigate('/account')}>
+                    <li onClick={() => navigate("/account")}>
                       <Link>My account</Link>
                       <span>
                         <svg
@@ -197,11 +205,11 @@ const Header = () => {
               </li>
             )}
             <li>
-              <Link to={'/wishlist'}>Favorite products</Link>
+              <Link to={"/wishlist"}>Favorite products</Link>
             </li>
             <li>
-              <Link>
-                Bag<span>(0)</span>
+              <Link to={"/basket"}>
+                Bag<span>({orders.length})</span>
               </Link>
             </li>
           </ul>
@@ -244,7 +252,7 @@ const Header = () => {
               </Link>
             </li>
             <li>
-              <Link to={'/wishlist'}>
+              <Link to={"/wishlist"}>
                 <svg
                   width="24"
                   height="24"
@@ -260,7 +268,8 @@ const Header = () => {
               </Link>
             </li>
             <li>
-              <Link>
+              <Link className={styles.basket} to={"/basket"}>
+                <span>{orders.length}</span>
                 <svg
                   width="24"
                   height="24"

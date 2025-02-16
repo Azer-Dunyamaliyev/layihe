@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+import { clearOrders } from "./basketSlice";
 
 //{ USER }
 export const getUserThunk = createAsyncThunk("api/users", async () => {
@@ -65,6 +66,7 @@ export const logout = () => (dispatch) => {
   localStorage.removeItem("token");
   localStorage.removeItem("username");
   dispatch(setUser(null));
+  dispatch(clearOrders());
 };
 
 // { UPDATE USER - USERNAME}

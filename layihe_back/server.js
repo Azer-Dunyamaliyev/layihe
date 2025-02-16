@@ -6,6 +6,7 @@ import userRoutes from './routes/auth.js';
 import cookieParser from 'cookie-parser';
 import productsRouter from './routes/productsRoute.js'
 import wishlistRouter from './routes/wihslistRoute.js'
+import ordersRouter from './routes/ordersRoute.js'
 configDotenv();
 const app = express();
 
@@ -16,7 +17,7 @@ app.use(cookieParser());
 
 // CORS
 const corsOptions = {
-  origin: 'http://localhost:3001', 
+  origin: 'http://localhost:3000', 
   methods: ['GET', 'POST', 'PUT', 'DELETE'], 
   allowedHeaders: ['Content-Type', 'Authorization'],
   exposedHeaders: ['Authorization'],
@@ -29,6 +30,7 @@ app.use(cors(corsOptions));
 app.use('/users', userRoutes);
 app.use("/products", productsRouter);
 app.use("/favorites", wishlistRouter);
+app.use("/orders", ordersRouter);
 
 
 // DB Bağlantısı

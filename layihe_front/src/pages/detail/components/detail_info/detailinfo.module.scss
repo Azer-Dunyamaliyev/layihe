@@ -1,4 +1,5 @@
 .detail_info {
+  width: 400px;
   .texts {
     display: flex;
     flex-direction: column;
@@ -51,6 +52,11 @@
           background-color: #000;
           color: #fff;
         }
+
+        &.selected {
+          background-color: #000;
+          color: #fff;
+        }
       }
     }
 
@@ -64,6 +70,13 @@
         justify-content: center;
         align-items: center;
         cursor: pointer;
+        
+        &.errorButton {
+          background-color: #E04F4F !important;
+          border: 3px solid #E04F4F;
+          color: white;
+        }
+        
         &:first-child {
           width: calc(100% - 42px);
           height: 42px;
@@ -92,7 +105,6 @@
 
     .accordion {
       width: 100%;
-      max-width: 400px;
       overflow: hidden;
       border-top: 1px solid #dedede;
       padding: 10px 0;

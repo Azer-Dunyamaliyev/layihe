@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import productsModel from "../models/productsModel.js";
 import wishListModel from "../models/wishlistModel.js";
+import ordersModel from "../models/ordersModel.js";
 
 // GET
 const getAllUsers = async (req, res) => {
@@ -44,7 +45,6 @@ const getProducts = async (req, res) => {
   }
 };
 
-
 const getAllProducts = async (req, res) => {
   try {
     const { name } = req.params; // URL'den name parametresini al
@@ -65,15 +65,16 @@ const getAllProducts = async (req, res) => {
   }
 };
 
-
 // ALL FAVORI PRODUCTS
 const getWishList = async (req, res) => {
   try {
     // Kullanıcı ID'si, kullanıcı doğrulaması üzerinden alınacak (örneğin JWT token ile)
     const userId = req.user?.userId;
-    
+
     if (!userId) {
-      return res.status(401).json({ message: "Yetkilendirme hatası! Kullanıcı ID bulunamadı." });
+      return res
+        .status(401)
+        .json({ message: "Yetkilendirme hatası! Kullanıcı ID bulunamadı." });
     }
 
     // Kullanıcının favorilerini getirme
@@ -83,18 +84,20 @@ const getWishList = async (req, res) => {
     });
 
     // Her favori için renk bilgisini kontrol et
-    const favoritesWithColor = favorites.map(favorite => {
+    const favoritesWithColor = favorites.map((favorite) => {
       const product = favorite.productId;
-      
+
       // Eğer ürün varyantları varsa, seçilen rengin doğru olduğuna emin ol
-      const selectedColor = product.variants 
-        ? product.variants.find(variant => variant.color === favorite.selectedColor) 
+      const selectedColor = product.variants
+        ? product.variants.find(
+            (variant) => variant.color === favorite.selectedColor
+          )
         : null;
 
       // Favoriyi dönmeden önce renk bilgisini ekliyoruz
       return {
-        ...favorite.toObject(), 
-        selectedColor: selectedColor ? selectedColor.color : null 
+        ...favorite.toObject(),
+        selectedColor: selectedColor ? selectedColor.color : null,
       };
     });
 
@@ -106,21 +109,49 @@ const getWishList = async (req, res) => {
   }
 };
 
-
 const wishlistStatus = async (req, res) => {
   try {
     const userId = req.user.userId;
     const { productId } = req.params;
     if (!userId || !productId) {
-      return res.status(400).json({ message: "User ID or Product ID is missing" });
+      return res
+        .status(400)
+        .json({ message: "User ID or Product ID is missing" });
     }
     const isFavorite = await wishListModel.findOne({ userId, productId });
     return res.status(200).json({ isFavorite: !!isFavorite });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 };
 
+const getUserOrders = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const orders = await ordersModel.find({ userId }).sort({ createdAt: -1 });
+
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ message: "Siparişler getirilemedi", error });
+  }
+};
+
+const getOrderById = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await ordersModel.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: "Sipariş bulunamadı" });
+    }
+
+    res.status(200).json(order);
+  } catch (error) {
+    res.status(500).json({ message: "Sipariş getirilemedi", error });
+  }
+};
 
 //POST
 
@@ -269,21 +300,34 @@ const addWishlist = async (req, res) => {
 
     // Eğer ürün variantlıysa ve renk seçilmemişse hata ver
     if (product.variants && product.variants.length > 1 && !selectedColor) {
-      return res.status(400).json({ message: "Selected color is required for variant products" });
+      return res
+        .status(400)
+        .json({ message: "Selected color is required for variant products" });
     }
 
     let productImages = product.images;
     if (product.variants && selectedColor) {
-      const selectedVariant = product.variants.find(variant => variant.color === selectedColor);
+      const selectedVariant = product.variants.find(
+        (variant) => variant.color === selectedColor
+      );
       if (selectedVariant) {
         productImages = selectedVariant.images;
       }
     }
 
     // Favori kontrolü, aynı ürün ve renk için engellemeyi sağlıyor
-    const existingFavorite = await wishListModel.findOne({ userId, productId, selectedColor });
+    const existingFavorite = await wishListModel.findOne({
+      userId,
+      productId,
+      selectedColor,
+    });
     if (existingFavorite) {
-      return res.status(400).json({ message: "This product with the selected color is already in favorites" });
+      return res
+        .status(400)
+        .json({
+          message:
+            "This product with the selected color is already in favorites",
+        });
     }
 
     // Yeni favori kaydı oluşturuluyor
@@ -303,6 +347,83 @@ const addWishlist = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+const createOrder = async (req, res) => {
+  const userId = req.user.userId; 
+  try {
+    const { products } = req.body;  
+
+    if (!userId || !products || products.length === 0) {
+      return res.status(400).json({ message: "Eksik sipariş bilgisi!" });
+    }
+
+    const userOrder = await ordersModel.findOne({ userId });
+
+    const orderItems = products.map(product => {
+      const totalPrice = product.price * product.quantity; 
+      return {
+        productId: product.productId,
+        selectedColor: product.selectedColor || "",
+        selectedSize: product.selectedSize || "",
+        quantity: product.quantity,
+        price: product.price,
+        totalPrice: totalPrice,
+        status: "Pending", 
+        createdAt: new Date(),
+      };
+    });
+
+    if (!userOrder) {
+      const newOrder = new ordersModel({
+        userId,
+        orders: orderItems, 
+      });
+
+      const savedOrder = await newOrder.save();
+      return res.status(201).json({
+        message: "Sipariş başarıyla oluşturuldu",
+        order: savedOrder,
+      });
+    } else {
+      userOrder.orders.forEach(existingOrder => {
+        orderItems.forEach(newOrderItem => {
+          if (
+            existingOrder.productId.toString() === newOrderItem.productId.toString() &&
+            existingOrder.selectedColor === newOrderItem.selectedColor &&
+            existingOrder.selectedSize === newOrderItem.selectedSize
+          ) {
+            existingOrder.quantity += newOrderItem.quantity;
+            existingOrder.totalPrice = existingOrder.price * existingOrder.quantity;
+          }
+        });
+      });
+
+      const newOrders = orderItems.filter(newOrderItem => {
+        return !userOrder.orders.some(existingOrder => 
+          existingOrder.productId.toString() === newOrderItem.productId.toString() &&
+          existingOrder.selectedColor === newOrderItem.selectedColor &&
+          existingOrder.selectedSize === newOrderItem.selectedSize
+        );
+      });
+
+      userOrder.orders.push(...newOrders);
+
+      const updatedOrder = await userOrder.save();
+
+      res.status(201).json({
+        message: "Sipariş başarıyla oluşturuldu",
+        order: updatedOrder,
+      });
+    }
+  } catch (error) {
+    console.error("Sipariş oluşturulamadı:", error);
+    res.status(500).json({ message: "Sipariş oluşturulamadı", error });
+  }
+};
+
+
+
+
 
 
 
@@ -399,7 +520,6 @@ const updatePassword = async (req, res) => {
 };
 
 const updatePhone = async (req, res) => {
-
   const { phone, countryCode } = req.body;
   const userId = req.user.userId;
 
@@ -425,6 +545,26 @@ const updatePhone = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    const order = await ordersModel.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: "Sipariş bulunamadı" });
+    }
+
+    order.status = status;
+    await order.save();
+
+    res.status(200).json({ message: "Sipariş durumu güncellendi", order });
+  } catch (error) {
+    res.status(500).json({ message: "Sipariş güncellenemedi", error });
   }
 };
 
@@ -506,16 +646,21 @@ const deleteWishListItem = async (req, res) => {
   }
 };
 
+const deleteOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
 
+    const order = await ordersModel.findByIdAndDelete(orderId);
 
+    if (!order) {
+      return res.status(404).json({ message: "Sipariş bulunamadı" });
+    }
 
-
-
-
-
-
-
-
+    res.status(200).json({ message: "Sipariş silindi" });
+  } catch (error) {
+    res.status(500).json({ message: "Sipariş silinemedi", error });
+  }
+};
 
 export {
   userRegister,
@@ -534,4 +679,9 @@ export {
   addWishlist,
   deleteWishListItem,
   wishlistStatus,
+  createOrder,
+  getUserOrders,
+  getOrderById,
+  updateOrderStatus,
+  deleteOrder,
 };

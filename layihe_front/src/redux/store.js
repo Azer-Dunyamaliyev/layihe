@@ -3,6 +3,8 @@ import userSlice from "./reducers/userSlice";
 import useReducer from "react";
 import productsSlice from "./reducers/productsSlice";
 import wishListSlice from "./reducers/wishlistSlice";
+import ordersSlice from "./reducers/ordersSlice";
+import basketSlice from "./reducers/basketSlice";
 
 export const store = configureStore({
     reducer: {
@@ -10,5 +12,7 @@ export const store = configureStore({
         user: useReducer,
         products: productsSlice,
         favorites: wishListSlice,
+        orders: ordersSlice,
+        basket: basketSlice,
     }
 })
