@@ -7,6 +7,7 @@ const userSchema = mongoose.Schema(
     password: { type: String },
     phone: { type: String },
     countryCode: {type: String},
+    orders: { type: Array, default: [] },
   },
   { timestamps: true }
 );

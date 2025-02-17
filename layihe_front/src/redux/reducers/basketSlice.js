@@ -17,7 +17,7 @@ export const getUserOrders = createAsyncThunk(
         }
       );
 
-      return response.data; // Sipariş verilerini döndürüyoruz
+      return response.data; 
     } catch (error) {
       return rejectWithValue(
         error.response ? error.response.data.message : error.message
@@ -71,6 +71,7 @@ export const basketSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      //GET
       .addCase(getUserOrders.pending, (state) => {
         state.loading = true;
       })
@@ -82,12 +83,13 @@ export const basketSlice = createSlice({
         state.loading = false;
         state.error = action.error.message;
       })
+
+      //POST
       .addCase(addToBasketThunk.pending, (state) => {
         state.loading = true;
       })
       .addCase(addToBasketThunk.fulfilled, (state, action) => {
         state.loading = false;
-
         const incomingOrders = action.payload.order.orders;
         incomingOrders.forEach((newOrder) => {
           const existingOrderIndex = state.orders.findIndex(
@@ -96,7 +98,7 @@ export const basketSlice = createSlice({
               order.selectedColor === newOrder.selectedColor &&
               order.selectedSize === newOrder.selectedSize
           );
-
+          
           if (existingOrderIndex !== -1) {
             state.orders[existingOrderIndex].quantity += newOrder.quantity;
           } else {

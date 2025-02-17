@@ -10,6 +10,8 @@ import Collection from '../components/collection/Collection'
 import Woman from '../pages/woman/Woman'
 import Favori from '../pages/wishlist/Favori'
 import Detailpro from '../pages/detail/Detailpro'
+import Basket from '../pages/basket/Basket'
+import About from '../pages/about/About'
 const Router = () => {
   return (
     <BrowserRouter>
@@ -25,6 +27,8 @@ const Router = () => {
         <Route path='/category/:name/:category' element={<Collection />} />
         <Route path='/wishlist' element={<Favori />} />
         <Route path='/category/:name/detail-collection' element={<Detailpro />} />
+        <Route path='/basket' element={<Basket />} />
+        <Route path='/about' element={<About />} />
       </Routes>
     </BrowserRouter>
   )

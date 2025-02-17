@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import productsModel from "../models/productsModel.js";
 import wishListModel from "../models/wishlistModel.js";
 import ordersModel from "../models/ordersModel.js";
-
+import mongoose from "mongoose";
 // GET
 const getAllUsers = async (req, res) => {
   try {
@@ -47,12 +47,12 @@ const getProducts = async (req, res) => {
 
 const getAllProducts = async (req, res) => {
   try {
-    const { name } = req.params; // URL'den name parametresini al
+    const { name } = req.params;
 
     const filter = {};
-    if (name) filter.name = name; // Eğer name parametresi varsa filtreye ekle
+    if (name) filter.name = name;
 
-    const products = await productsModel.find(filter).sort({ _id: -1 }); // Yeni eklenenler önce gelecek
+    const products = await productsModel.find(filter).sort({ _id: -1 }); 
 
     if (products.length === 0) {
       return res.status(404).json({ message: "Hiç ürün bulunamadı" });
@@ -68,7 +68,6 @@ const getAllProducts = async (req, res) => {
 // ALL FAVORI PRODUCTS
 const getWishList = async (req, res) => {
   try {
-    // Kullanıcı ID'si, kullanıcı doğrulaması üzerinden alınacak (örneğin JWT token ile)
     const userId = req.user?.userId;
 
     if (!userId) {
@@ -77,7 +76,6 @@ const getWishList = async (req, res) => {
         .json({ message: "Yetkilendirme hatası! Kullanıcı ID bulunamadı." });
     }
 
-    // Kullanıcının favorilerini getirme
     const favorites = await wishListModel.find({ userId }).populate({
       path: "productId",
       model: productsModel,
@@ -130,8 +128,11 @@ const wishlistStatus = async (req, res) => {
 const getUserOrders = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const orders = await ordersModel.find({ userId }).sort({ createdAt: -1 });
-
+    
+    const orders = await ordersModel.find({ userId })
+      .populate("orders.productId")
+      .sort({ createdAt: -1 });
+    
     res.status(200).json(orders);
   } catch (error) {
     res.status(500).json({ message: "Siparişler getirilemedi", error });
@@ -421,13 +422,32 @@ const createOrder = async (req, res) => {
   }
 };
 
+const addOrderToUser = async (req, res) => {
+  const userId = req.user.userId
+  const { products } = req.body;
 
+  try {
+    const user = await userModel.findById(userId);
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" }); 
+    }
 
+    const newOrder = {
+      products, 
+      createdAt: new Date(), 
+    };
 
+    user.orders.push(newOrder);
 
+    await user.save();
 
-
-
+    return res.status(200).json({ message: "Order added successfully", user });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error adding order", error: error.message });
+  }
+};
 
 
 //PUT
@@ -594,12 +614,7 @@ const deleteWishListItem = async (req, res) => {
     const userId = req.user.userId;
     const { selectedColor } = req.body;
 
-    console.log("BODY:", req.body); // Veriyi loglayarak kontrol edin
-    console.log("Gelen silme isteği: ", { userId, productId, selectedColor });
-
-    // Eğer selectedColor gönderilmemişse, tüm favori ürün silinecek
     if (!selectedColor) {
-      console.log("selectedColor boş, tüm ürünü siliyoruz.");
       const deletedFavorite = await wishListModel.findOneAndDelete({
         userId,
         productId,
@@ -616,7 +631,6 @@ const deleteWishListItem = async (req, res) => {
       });
     }
 
-    // Eğer selectedColor varsa, renk dizisinden çıkarılacak
     const updatedFavorite = await wishListModel.findOneAndUpdate(
       { userId, productId },
       { $pull: { colors: selectedColor } },
@@ -629,7 +643,6 @@ const deleteWishListItem = async (req, res) => {
       return res.status(404).json({ message: "Favori ürün bulunamadı!" });
     }
 
-    // Eğer colors dizisi boşsa, ürünü tamamen silelim
     if (updatedFavorite.colors.length === 0) {
       await wishListModel.findOneAndDelete({ userId, productId });
       console.log("Ürün tamamen silindi.");
@@ -649,18 +662,31 @@ const deleteWishListItem = async (req, res) => {
 const deleteOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ message: "Geçersiz sipariş ID" });
+    }
 
-    const order = await ordersModel.findByIdAndDelete(orderId);
+    const updatedOrder = await ordersModel.findOneAndUpdate(
+      { "orders._id": orderId }, 
+      { $pull: { orders: { _id: orderId } } }, 
+      { new: true }
+    );
 
-    if (!order) {
+    if (!updatedOrder) {
       return res.status(404).json({ message: "Sipariş bulunamadı" });
     }
 
-    res.status(200).json({ message: "Sipariş silindi" });
+    res.status(200).json({ message: "Sipariş başarıyla silindi", updatedOrder });
   } catch (error) {
+    console.error("Hata:", error);
     res.status(500).json({ message: "Sipariş silinemedi", error });
   }
 };
+
+
+
+
+
 
 export {
   userRegister,
@@ -684,4 +710,5 @@ export {
   getOrderById,
   updateOrderStatus,
   deleteOrder,
+  addOrderToUser,
 };

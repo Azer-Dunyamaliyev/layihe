@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// Sipariş yaratmak
+// Sipariş yaratmaq
 export const createOrderThunk = createAsyncThunk(
   'order/createOrder',
   async ({ orderData, userId }, { rejectWithValue }) => {
@@ -17,18 +17,28 @@ export const createOrderThunk = createAsyncThunk(
   }
 );
 
-// Kullanıcı siparişlerini getirmek
+// Isdifadeci siparişlerini getirmek
 export const getUserOrdersThunk = createAsyncThunk(
   "order/getUserOrders",
   async (userId, { rejectWithValue }) => {
+    const token = localStorage.getItem("token"); 
+    if (!token) {
+      return rejectWithValue("Token bulunamadı.");
+    }
+
     try {
-      const response = await axios.get(`http://localhost:5500/orders/${userId}`);
+      const response = await axios.get(`http://localhost:5500/orders/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response ? error.response.data.message : error.message);
     }
   }
 );
+
 
 // ID'ye göre sipariş getirmek
 export const getOrderByIdThunk = createAsyncThunk(
@@ -43,7 +53,7 @@ export const getOrderByIdThunk = createAsyncThunk(
   }
 );
 
-// Sipariş durumunu güncellemek
+// Sipariş veziyyetini güncellemek
 export const updateOrderStatusThunk = createAsyncThunk(
   "order/updateOrderStatus",
   async ({ orderId, status }, { rejectWithValue }) => {
@@ -59,15 +69,26 @@ export const updateOrderStatusThunk = createAsyncThunk(
 // Sipariş silmek
 export const deleteOrderThunk = createAsyncThunk(
   "order/deleteOrder",
-  async (orderId, { rejectWithValue }) => {
+  async (itemId, { rejectWithValue }) => {
     try {
-      await axios.delete(`http://localhost:5500/orders/order/${orderId}`);
-      return { orderId };
+      const token = localStorage.getItem("token");
+
+      const response = await axios.delete(`http://localhost:5500/orders/order/${itemId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data; 
     } catch (error) {
       return rejectWithValue(error.response ? error.response.data.message : error.message);
     }
   }
 );
+
+
+
+
 
 export const ordersSlice = createSlice({
   name: "orders",
@@ -80,6 +101,7 @@ export const ordersSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      //POST
       .addCase(createOrderThunk.pending, (state) => {
         state.loading = true;
       })
@@ -91,7 +113,7 @@ export const ordersSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
+      //GET
       .addCase(getUserOrdersThunk.pending, (state) => {
         state.loading = true;
       })
@@ -103,7 +125,7 @@ export const ordersSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
+      //GET USERID
       .addCase(getOrderByIdThunk.pending, (state) => {
         state.loading = true;
       })
@@ -116,6 +138,7 @@ export const ordersSlice = createSlice({
         state.error = action.payload;
       })
 
+      //PUT
       .addCase(updateOrderStatusThunk.pending, (state) => {
         state.loading = true;
       })
@@ -131,7 +154,7 @@ export const ordersSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
+      //DELETE
       .addCase(deleteOrderThunk.pending, (state) => {
         state.loading = true;
       })
@@ -142,7 +165,7 @@ export const ordersSlice = createSlice({
       .addCase(deleteOrderThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
+      })
   },
 });
 

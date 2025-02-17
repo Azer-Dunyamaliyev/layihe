@@ -15,7 +15,11 @@ const Header = () => {
   const [isOpenSea, setIsOpenSea] = useState(false);
   const [isOpen, setIsOpen] = React.useState(false);
   const { me, loading } = useSelector((state) => state.users);
-  const { orders, error } = useSelector((state) => state.basket);
+  const orders = useSelector((state) => state.basket.orders);
+  const userId = 'USER_ID'
+  console.log(orders);
+  
+  
 
   const toggleDrawer = () => {
     setIsOpen((prevState) => !prevState);
@@ -28,9 +32,8 @@ const Header = () => {
 
   useEffect(() => {
     dispatch(getMeThunk());
-    dispatch(getUserOrders());
-    
-  }, [dispatch]);
+    dispatch(getUserOrders(userId));
+  }, [dispatch,userId]);
 
   return (
     <div className={styles.header}>
