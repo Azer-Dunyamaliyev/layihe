@@ -1,11 +1,14 @@
 import React, { useEffect } from "react";
 import styles from "./shopping.module.scss";
 import { useDispatch, useSelector } from "react-redux";
-import { getUserOrdersThunk } from "../../../../redux/reducers/ordersSlice";
+import { getUserOrdersThunk, successOrderThunk } from "../../../../redux/reducers/ordersSlice";
+import { useNavigate } from "react-router-dom";
+
 const Shopping = () => {
+  const navigate = useNavigate()
   const dispatch = useDispatch();
   const orders = useSelector((state) => state.orders.orders);
-  const userId = "USER_ID";
+  const userId = "USER_ID"; 
 
   const totalPrice = orders.reduce((total, order) => {
     const orderTotal = order.orders.reduce((orderSum, item) => {
@@ -18,15 +21,35 @@ const Shopping = () => {
   const deliveryFee = totalPrice < 1000 ? totalPrice * 0.1 : 0;
   const totalWithDelivery = totalPrice + deliveryFee;
 
+  const handleBuy = () => {
+    const orderData = {
+      userId,
+      totalPrice, 
+      products: orders.flatMap(order => order.orders.map(item => ({
+        productId: item.productId._id, 
+        quantity: item.quantity,
+        selectedColor: item.selectedColor,
+        selectedSize: item.selectedSize,
+        totalPrice: totalWithDelivery,
+        price: item.price,
+      }))),
+      deliveryFee,
+      totalWithDelivery
+    };
+
+    dispatch(successOrderThunk({ orderData }));
+  };
+
   useEffect(() => {
     dispatch(getUserOrdersThunk(userId));
-  }, [dispatch]);
+  }, [dispatch, userId]);
+
   return (
     <div className={styles.shopping}>
       <div className={styles.texts}>
         <div className={styles.text}>
           <p>
-            Subtotal:<span>{totalPrice}$</span>
+            Subtotal: <span>{totalPrice}$</span>
           </p>
           <p>
             Delivery: <span>{deliveryFee > 0 ? `${deliveryFee.toFixed(2)}$` : "Free"}</span>
@@ -34,11 +57,12 @@ const Shopping = () => {
           <div>
             <p>
               Total
-              <span>{ `${totalWithDelivery.toFixed(2)}$`}</span>
+              <span>{`${totalWithDelivery.toFixed(2)}$`}</span>
             </p>
             <h6>Taxes included</h6>
           </div>
-          <button>Buy</button>
+          {/* <button onClick={handleBuy}>Buy</button>  */}
+          <button onClick={() => navigate('/checkout')}>Buy</button> 
         </div>
         <div className={styles.lists}>
           <p>

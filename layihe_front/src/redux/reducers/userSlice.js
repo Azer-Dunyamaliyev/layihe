@@ -2,6 +2,8 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 import { clearOrders } from "./basketSlice";
 
+
+
 //{ USER }
 export const getUserThunk = createAsyncThunk("api/users", async () => {
   const response = await axios.get("http://localhost:5500/users");
@@ -290,7 +292,7 @@ export const userSlice = createSlice({
       // { UPDATE USERNAME }
       .addCase(updateUsernameThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.me = action.payload; // Update user data
+        state.me = action.payload; 
       })
       .addCase(updateUsernameThunk.pending, (state) => {
         state.loading = true;

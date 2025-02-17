@@ -1,6 +1,5 @@
 import express from "express";
 import {
-  addOrderToUser,
   deleteUser,
   getAllUsers,
   meUser,
@@ -24,5 +23,4 @@ router.put("/update/email", authMiddleware, updateEmail);
 router.put("/update/password", authMiddleware, updatePassword);
 router.put("/update/phone", authMiddleware, updatePhone);
 router.delete("/delete", authMiddleware, deleteUser);
-router.route("/orders").post(authMiddleware,addOrderToUser)
 export default router;

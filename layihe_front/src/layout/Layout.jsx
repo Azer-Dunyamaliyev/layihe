@@ -2,14 +2,14 @@ import React from 'react'
 import Header from '../components/header/Header'
 import Footer from '../components/footer/Footer'
 
-const Layout = ({children}) => {
+const Layout = ({children,showFooter = true}) => {
   return (
     <div>
         <Header />
         <main>
             {children}
         </main>
-        <Footer />
+        {showFooter && <Footer />}
     </div>
   )
 }

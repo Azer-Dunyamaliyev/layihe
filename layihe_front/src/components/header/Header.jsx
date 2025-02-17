@@ -17,9 +17,6 @@ const Header = () => {
   const { me, loading } = useSelector((state) => state.users);
   const orders = useSelector((state) => state.basket.orders);
   const userId = 'USER_ID'
-  console.log(orders);
-  
-  
 
   const toggleDrawer = () => {
     setIsOpen((prevState) => !prevState);

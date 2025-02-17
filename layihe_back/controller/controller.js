@@ -5,6 +5,8 @@ import productsModel from "../models/productsModel.js";
 import wishListModel from "../models/wishlistModel.js";
 import ordersModel from "../models/ordersModel.js";
 import mongoose from "mongoose";
+import successOrderModel from "../models/successOrdersModel.js";
+
 // GET
 const getAllUsers = async (req, res) => {
   try {
@@ -422,32 +424,35 @@ const createOrder = async (req, res) => {
   }
 };
 
-const addOrderToUser = async (req, res) => {
+const successOrders = async (req,res) => {
   const userId = req.user.userId
-  const { products } = req.body;
+  const { order } = req.body; 
+  console.log(req.body);
 
   try {
-    const user = await userModel.findById(userId);
-    
-    if (!user) {
-      return res.status(404).json({ message: "User not found" }); 
-    }
+    const newOrder = new successOrderModel({
+      userId: new mongoose.Types.ObjectId(userId),
+      products: order.products.map(p => ({
+        ...p,
+        productId: new mongoose.Types.ObjectId(p.productId)
+      })),
+      totalPrice: order.totalWithDelivery,
+      status: "Pending",
+    });
 
-    const newOrder = {
-      products, 
-      createdAt: new Date(), 
-    };
+    await newOrder.save(); 
 
-    user.orders.push(newOrder);
-
-    await user.save();
-
-    return res.status(200).json({ message: "Order added successfully", user });
+    res.status(201).json({
+      message: "Order placed successfully!",
+      order: newOrder,
+    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Error adding order", error: error.message });
+    res.status(500).json({
+      message: "Something went wrong while placing the order.",
+    });
   }
-};
+}
 
 
 //PUT
@@ -710,5 +715,5 @@ export {
   getOrderById,
   updateOrderStatus,
   deleteOrder,
-  addOrderToUser,
+  successOrders,
 };

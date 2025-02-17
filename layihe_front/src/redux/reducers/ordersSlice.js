@@ -1,6 +1,34 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+
+export const successOrderThunk = createAsyncThunk(
+  'order/succesOrder',
+  async ({ orderData }, { rejectWithValue }) => {
+    console.log(orderData);
+    
+    try {
+      const token = localStorage.getItem("token"); 
+      if (!token) {
+        return rejectWithValue("Token bulunamadı.");
+      }
+
+      const response = await axios.post('http://localhost:5500/success/orders/', {
+        order: orderData, 
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`, 
+        },
+      });
+
+      return response.data; 
+    } catch (error) {
+      return rejectWithValue(error.response ? error.response.data.message : error.message);
+    }
+  }
+);
+
+
 // Sipariş yaratmaq
 export const createOrderThunk = createAsyncThunk(
   'order/createOrder',
@@ -97,6 +125,7 @@ export const ordersSlice = createSlice({
     loading: false,
     error: null,
     orderDetails: null,
+    succesOrders: []
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -110,6 +139,18 @@ export const ordersSlice = createSlice({
         state.orders.push(action.payload);
       })
       .addCase(createOrderThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(successOrderThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(successOrderThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.succesOrders.push(action.payload);
+      })
+      .addCase(successOrderThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

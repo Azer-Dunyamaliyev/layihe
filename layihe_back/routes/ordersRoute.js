@@ -9,5 +9,4 @@ router.route("/:userId").get(authMiddleware,getUserOrders);
 router.route("/order/:orderId").get(authMiddleware,getOrderById);
 router.route("/order/:orderId").put(authMiddleware,updateOrderStatus);
 router.route("/order/:orderId").delete(authMiddleware,deleteOrder);
-
 export default router

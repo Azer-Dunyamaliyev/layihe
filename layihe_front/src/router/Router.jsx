@@ -12,6 +12,7 @@ import Favori from '../pages/wishlist/Favori'
 import Detailpro from '../pages/detail/Detailpro'
 import Basket from '../pages/basket/Basket'
 import About from '../pages/about/About'
+import Checkout from '../pages/checkout/Checkout'
 const Router = () => {
   return (
     <BrowserRouter>
@@ -29,6 +30,7 @@ const Router = () => {
         <Route path='/category/:name/detail-collection' element={<Detailpro />} />
         <Route path='/basket' element={<Basket />} />
         <Route path='/about' element={<About />} />
+        <Route path='/checkout' element={<Checkout />} />
       </Routes>
     </BrowserRouter>
   )
