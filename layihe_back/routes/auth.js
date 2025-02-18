@@ -6,6 +6,7 @@ import {
   updateEmail,
   updatePassword,
   updatePhone,
+  updateUserInfo,
   updateUserName,
   userLogin,
   userRegister,
@@ -22,5 +23,6 @@ router.put("/update/username", authMiddleware, updateUserName);
 router.put("/update/email", authMiddleware, updateEmail);
 router.put("/update/password", authMiddleware, updatePassword);
 router.put("/update/phone", authMiddleware, updatePhone);
+router.put("/update", authMiddleware, updateUserInfo);
 router.delete("/delete", authMiddleware, deleteUser);
 export default router;

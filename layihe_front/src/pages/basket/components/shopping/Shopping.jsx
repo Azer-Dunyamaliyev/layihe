@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import styles from "./shopping.module.scss";
 import { useDispatch, useSelector } from "react-redux";
-import { getUserOrdersThunk, successOrderThunk } from "../../../../redux/reducers/ordersSlice";
+import { deleteSuccesOrderThunk, getUserOrdersThunk, successOrderThunk, updateOrderStatusThunk } from "../../../../redux/reducers/ordersSlice";
 import { useNavigate } from "react-router-dom";
 
 const Shopping = () => {
@@ -21,7 +21,7 @@ const Shopping = () => {
   const deliveryFee = totalPrice < 1000 ? totalPrice * 0.1 : 0;
   const totalWithDelivery = totalPrice + deliveryFee;
 
-  const handleBuy = () => {
+  const handleBuy = async () => {
     const orderData = {
       userId,
       totalPrice, 
@@ -37,7 +37,21 @@ const Shopping = () => {
       totalWithDelivery
     };
 
-    dispatch(successOrderThunk({ orderData }));
+    try {
+      const response = await dispatch(successOrderThunk({ orderData }));
+    
+      if (response.meta.requestStatus === 'fulfilled') {
+        const orderId = response.payload.order._id;
+        navigate(`/checkout/${orderId}`);
+    
+        setTimeout(() => {
+          dispatch(deleteSuccesOrderThunk({ orderId }));
+        }, 3600000);
+      }
+    } catch (error) {
+      console.error('Sipariş kaydedilemedi:', error);
+    }
+    
   };
 
   useEffect(() => {
@@ -61,8 +75,7 @@ const Shopping = () => {
             </p>
             <h6>Taxes included</h6>
           </div>
-          {/* <button onClick={handleBuy}>Buy</button>  */}
-          <button onClick={() => navigate('/checkout')}>Buy</button> 
+          <button onClick={handleBuy}>Buy</button> 
         </div>
         <div className={styles.lists}>
           <p>

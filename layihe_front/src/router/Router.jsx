@@ -30,7 +30,7 @@ const Router = () => {
         <Route path='/category/:name/detail-collection' element={<Detailpro />} />
         <Route path='/basket' element={<Basket />} />
         <Route path='/about' element={<About />} />
-        <Route path='/checkout' element={<Checkout />} />
+        <Route path='/checkout/:orderId' element={<Checkout />} />
       </Routes>
     </BrowserRouter>
   )

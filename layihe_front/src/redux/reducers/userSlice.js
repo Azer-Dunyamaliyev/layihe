@@ -95,6 +95,33 @@ export const updateUsernameThunk = createAsyncThunk(
   }
 );
 
+// { UPDATE USER - USER INFO }
+export const updateUserInfoThunk = createAsyncThunk(
+  "user/updateUserInfo",
+  async (userData, thunkAPI) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.put(
+        "http://localhost:5500/users/update",  // Endpoint
+        userData,  // Yeni kullanıcı bilgileri
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,  // Token ekleme
+          },
+        }
+      );
+
+      return response.data;  // Backend'den dönen yeni kullanıcı verisi
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response ? error.response.data : "An error occurred"
+      );
+    }
+  }
+);
+
+
 // { UPDATE USER - EMAIL}
 
 export const updateEmailThunk = createAsyncThunk(
@@ -210,6 +237,10 @@ export const userSlice = createSlice({
       password: "",
       phone: "",
       countryCode: "",
+      address: "",
+      country: "",
+      town: "",
+      cards: "",
     },
     token: localStorage.getItem("token") || null,
     username: localStorage.getItem("username") || null,
@@ -312,6 +343,19 @@ export const userSlice = createSlice({
         state.loading = false;
       })
       .addCase(updateEmailThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // { UPDATE USER INFO }
+      .addCase(updateUserInfoThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.me = { ...state.me, ...action.payload };
+      })
+      .addCase(updateUserInfoThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateUserInfoThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

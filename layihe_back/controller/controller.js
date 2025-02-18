@@ -54,7 +54,7 @@ const getAllProducts = async (req, res) => {
     const filter = {};
     if (name) filter.name = name;
 
-    const products = await productsModel.find(filter).sort({ _id: -1 }); 
+    const products = await productsModel.find(filter).sort({ _id: -1 });
 
     if (products.length === 0) {
       return res.status(404).json({ message: "Hiç ürün bulunamadı" });
@@ -130,11 +130,12 @@ const wishlistStatus = async (req, res) => {
 const getUserOrders = async (req, res) => {
   try {
     const userId = req.user.userId;
-    
-    const orders = await ordersModel.find({ userId })
+
+    const orders = await ordersModel
+      .find({ userId })
       .populate("orders.productId")
       .sort({ createdAt: -1 });
-    
+
     res.status(200).json(orders);
   } catch (error) {
     res.status(500).json({ message: "Siparişler getirilemedi", error });
@@ -325,12 +326,9 @@ const addWishlist = async (req, res) => {
       selectedColor,
     });
     if (existingFavorite) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "This product with the selected color is already in favorites",
-        });
+      return res.status(400).json({
+        message: "This product with the selected color is already in favorites",
+      });
     }
 
     // Yeni favori kaydı oluşturuluyor
@@ -352,9 +350,9 @@ const addWishlist = async (req, res) => {
 };
 
 const createOrder = async (req, res) => {
-  const userId = req.user.userId; 
+  const userId = req.user.userId;
   try {
-    const { products } = req.body;  
+    const { products } = req.body;
 
     if (!userId || !products || products.length === 0) {
       return res.status(400).json({ message: "Eksik sipariş bilgisi!" });
@@ -362,8 +360,8 @@ const createOrder = async (req, res) => {
 
     const userOrder = await ordersModel.findOne({ userId });
 
-    const orderItems = products.map(product => {
-      const totalPrice = product.price * product.quantity; 
+    const orderItems = products.map((product) => {
+      const totalPrice = product.price * product.quantity;
       return {
         productId: product.productId,
         selectedColor: product.selectedColor || "",
@@ -371,7 +369,7 @@ const createOrder = async (req, res) => {
         quantity: product.quantity,
         price: product.price,
         totalPrice: totalPrice,
-        status: "Pending", 
+        status: "Pending",
         createdAt: new Date(),
       };
     });
@@ -379,7 +377,7 @@ const createOrder = async (req, res) => {
     if (!userOrder) {
       const newOrder = new ordersModel({
         userId,
-        orders: orderItems, 
+        orders: orderItems,
       });
 
       const savedOrder = await newOrder.save();
@@ -388,24 +386,28 @@ const createOrder = async (req, res) => {
         order: savedOrder,
       });
     } else {
-      userOrder.orders.forEach(existingOrder => {
-        orderItems.forEach(newOrderItem => {
+      userOrder.orders.forEach((existingOrder) => {
+        orderItems.forEach((newOrderItem) => {
           if (
-            existingOrder.productId.toString() === newOrderItem.productId.toString() &&
+            existingOrder.productId.toString() ===
+              newOrderItem.productId.toString() &&
             existingOrder.selectedColor === newOrderItem.selectedColor &&
             existingOrder.selectedSize === newOrderItem.selectedSize
           ) {
             existingOrder.quantity += newOrderItem.quantity;
-            existingOrder.totalPrice = existingOrder.price * existingOrder.quantity;
+            existingOrder.totalPrice =
+              existingOrder.price * existingOrder.quantity;
           }
         });
       });
 
-      const newOrders = orderItems.filter(newOrderItem => {
-        return !userOrder.orders.some(existingOrder => 
-          existingOrder.productId.toString() === newOrderItem.productId.toString() &&
-          existingOrder.selectedColor === newOrderItem.selectedColor &&
-          existingOrder.selectedSize === newOrderItem.selectedSize
+      const newOrders = orderItems.filter((newOrderItem) => {
+        return !userOrder.orders.some(
+          (existingOrder) =>
+            existingOrder.productId.toString() ===
+              newOrderItem.productId.toString() &&
+            existingOrder.selectedColor === newOrderItem.selectedColor &&
+            existingOrder.selectedSize === newOrderItem.selectedSize
         );
       });
 
@@ -424,23 +426,23 @@ const createOrder = async (req, res) => {
   }
 };
 
-const successOrders = async (req,res) => {
-  const userId = req.user.userId
-  const { order } = req.body; 
+const successOrders = async (req, res) => {
+  const userId = req.user.userId;
+  const { order } = req.body;
   console.log(req.body);
 
   try {
     const newOrder = new successOrderModel({
       userId: new mongoose.Types.ObjectId(userId),
-      products: order.products.map(p => ({
+      products: order.products.map((p) => ({
         ...p,
-        productId: new mongoose.Types.ObjectId(p.productId)
+        productId: new mongoose.Types.ObjectId(p.productId),
       })),
       totalPrice: order.totalWithDelivery,
       status: "Pending",
     });
 
-    await newOrder.save(); 
+    await newOrder.save();
 
     res.status(201).json({
       message: "Order placed successfully!",
@@ -452,8 +454,7 @@ const successOrders = async (req,res) => {
       message: "Something went wrong while placing the order.",
     });
   }
-}
-
+};
 
 //PUT
 
@@ -573,23 +574,70 @@ const updatePhone = async (req, res) => {
   }
 };
 
+const updateUserInfo = async (req, res) => {
+  try {
+    const {
+      name,
+      surname,
+      address,
+      country,
+      town,
+      cardNumber,
+      holder,
+      month,
+      year,
+      cvv,
+    } = req.body;
+    const updateData = {
+      name,
+      surname,
+      address,
+      country,
+      town,
+    };
+
+    if (cardNumber && holder && month && year && cvv) {
+      updateData.cards = [{ cardNumber, holder, month, year, cvv }];
+    }
+
+    const updatedUser = await userModel.findByIdAndUpdate(
+      req.user.userId,
+      updateData,
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Kullanıcı bilgileri güncellenirken bir hata oluştu" });
+  }
+};
+
 const updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
 
-    const order = await ordersModel.findById(orderId);
-
+    const order = await successOrderModel.findById(orderId);
     if (!order) {
-      return res.status(404).json({ message: "Sipariş bulunamadı" });
+      return res.status(404).json({ message: "Order not found" });
     }
 
     order.status = status;
     await order.save();
 
-    res.status(200).json({ message: "Sipariş durumu güncellendi", order });
+    return res.status(200).json({ message: "Order status updated", order });
   } catch (error) {
-    res.status(500).json({ message: "Sipariş güncellenemedi", error });
+    console.error("Error updating order status:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };
 
@@ -672,8 +720,8 @@ const deleteOrder = async (req, res) => {
     }
 
     const updatedOrder = await ordersModel.findOneAndUpdate(
-      { "orders._id": orderId }, 
-      { $pull: { orders: { _id: orderId } } }, 
+      { "orders._id": orderId },
+      { $pull: { orders: { _id: orderId } } },
       { new: true }
     );
 
@@ -681,16 +729,36 @@ const deleteOrder = async (req, res) => {
       return res.status(404).json({ message: "Sipariş bulunamadı" });
     }
 
-    res.status(200).json({ message: "Sipariş başarıyla silindi", updatedOrder });
+    res
+      .status(200)
+      .json({ message: "Sipariş başarıyla silindi", updatedOrder });
   } catch (error) {
     console.error("Hata:", error);
     res.status(500).json({ message: "Sipariş silinemedi", error });
   }
 };
 
+const deleteAllOrders = async (req, res) => {
+  try {
+    console.log("deleteAllOrders fonksiyonu başlatıldı.");
+    const userId = new mongoose.Types.ObjectId(req.user.userId);
+    console.log("userId:", userId); // userId'nin doğru alınıp alınmadığını kontrol et.
+    
+    const deletedOrders = await ordersModel.deleteMany({ userId });
+    console.log("deletedOrders:", deletedOrders);
 
+    if (deletedOrders.deletedCount === 0) {
+      console.log("Silinecek sipariş bulunamadı");
+      return res.status(404).json({ message: "Silinecek sipariş bulunamadı" });
+    }
 
-
+    console.log("Tüm siparişler silindi");
+    res.status(200).json({ message: "Tüm siparişler silindi" });
+  } catch (error) {
+    console.error("Silme işlemi hatası:", error);
+    res.status(500).json({ message: "Siparişler silinirken hata oluştu" });
+  }
+};
 
 
 export {
@@ -716,4 +784,6 @@ export {
   updateOrderStatus,
   deleteOrder,
   successOrders,
+  updateUserInfo,
+  deleteAllOrders,
 };

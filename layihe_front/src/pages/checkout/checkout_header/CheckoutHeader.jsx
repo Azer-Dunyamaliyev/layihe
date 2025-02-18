@@ -1,13 +1,36 @@
-import React, { useState } from "react";
-import Stepper from "react-stepper-horizontal";
+import React, { useState, useEffect } from "react";
+import {
+  Stepper,
+  Step,
+  StepLabel,
+} from "@mui/material";
 import styles from "./checkoutheader.module.scss";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { useParams } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { deleteAllOrdersThunk, updateOrderStatusThunk } from "../../../redux/reducers/ordersSlice";
+import { updateUserInfoThunk } from "../../../redux/reducers/userSlice";
 
 const steps = ["Details", "Delivery", "Payment"];
 
 const CheckoutHeader = () => {
-  const [activeStep, setActiveStep] = useState(1);
+  const [activeStep, setActiveStep] = useState(1); 
+  const [isFinish, setIsFinish] = useState(false); 
+  const { orderId } = useParams(); 
+  const dispatch = useDispatch();
+  useEffect(() => {
+    const savedStep = localStorage.getItem("activeStep");
+    if (savedStep) {
+      setActiveStep(parseInt(savedStep, 10)); 
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isFinish) { 
+      localStorage.setItem("activeStep", activeStep);
+    }
+  }, [activeStep, isFinish]);
 
   const validationSchema = Yup.object({
     name: Yup.string().required("First Name is required"),
@@ -28,8 +51,38 @@ const CheckoutHeader = () => {
       town: "",
     },
     validationSchema,
-    validateOnBlur: true, // Blur olduğunda doğrulama yapılacak
-    validateOnChange: true, // Input değiştiğinde doğrulama yapılacak
+    validateOnBlur: true,
+    validateOnChange: true,
+    onSubmit: (values) => {
+      alert(JSON.stringify(values, null, 2));
+    },
+  });
+
+  const formikPaymnet = useFormik({
+    initialValues: {
+      cardNumber: "",
+      holder: "",
+      month: "",
+      year: "",
+      cvv: "",
+    },
+    validationSchema: Yup.object({
+      cardNumber: Yup.string()
+        .matches(/^[0-9]{16}$/, "Card Number must be 16 digits")
+        .required("Card Number is required"),
+      holder: Yup.string().required("Card Holder is required"),
+      month: Yup.string()
+        .matches(/^(0[1-9]|1[0-2])$/, "Month must be 2 digits (01-12)")
+        .required("Expiration Month is required"),
+      year: Yup.string()
+        .matches(/^[0-9]{4}$/, "Year must be 4 digits")
+        .required("Expiration Year is required"),
+      cvv: Yup.string()
+        .matches(/^[0-9]{3}$/, "CVV must be 3 digits")
+        .required("CVV is required"),
+    }),
+    validateOnBlur: true,
+    validateOnChange: true,
     onSubmit: (values) => {
       alert(JSON.stringify(values, null, 2));
     },
@@ -169,51 +222,204 @@ const CheckoutHeader = () => {
                   </div>
                 </div>
               </div>
-
-              <button type="submit">Submit</button>
             </form>
           </div>
         );
       case 2:
-        return <div>Payment Content</div>;
+        return (
+          <div className={styles.payment}>
+            <form onSubmit={formikPaymnet.handleSubmit}>
+              <div className={styles.user_payment}>
+                <h2>Details for card</h2>
+                <div className={styles.user_payment_inputs}>
+                  <div className={styles.input}>
+                    <input
+                      id="cardNumber"
+                      name="cardNumber"
+                      type="text"
+                      placeholder="Card Number *"
+                      onChange={formikPaymnet.handleChange}
+                      onBlur={formikPaymnet.handleBlur}
+                      value={formikPaymnet.values.cardNumber}
+                    />
+                    {formikPaymnet.touched.cardNumber &&
+                      formikPaymnet.errors.cardNumber && (
+                        <div className={styles.error}>
+                          {formikPaymnet.errors.cardNumber}
+                        </div>
+                      )}
+                  </div>
+                  <div className={styles.input}>
+                    <input
+                      id="holder"
+                      name="holder"
+                      type="text"
+                      placeholder="Card Holder *"
+                      onChange={formikPaymnet.handleChange}
+                      onBlur={formikPaymnet.handleBlur}
+                      value={formikPaymnet.values.holder}
+                    />
+                    {formikPaymnet.touched.holder &&
+                      formikPaymnet.errors.holder && (
+                        <div className={styles.error}>
+                          {formikPaymnet.errors.holder}
+                        </div>
+                      )}
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.card_details}>
+                <div className={styles.input}>
+                  <input
+                    id="month"
+                    name="month"
+                    type="text"
+                    placeholder="Month *"
+                    onChange={formikPaymnet.handleChange}
+                    onBlur={formikPaymnet.handleBlur}
+                    value={formikPaymnet.values.month}
+                  />
+                  {formikPaymnet.touched.month &&
+                    formikPaymnet.errors.month && (
+                      <div className={styles.error}>
+                        {formikPaymnet.errors.month}
+                      </div>
+                    )}
+                </div>
+                <div className={styles.input}>
+                  <input
+                    id="year"
+                    name="year"
+                    type="text"
+                    placeholder="Year *"
+                    onChange={formikPaymnet.handleChange}
+                    onBlur={formikPaymnet.handleBlur}
+                    value={formikPaymnet.values.year}
+                  />
+                  {formikPaymnet.touched.year && formikPaymnet.errors.year && (
+                    <div className={styles.error}>
+                      {formikPaymnet.errors.year}
+                    </div>
+                  )}
+                </div>
+                <div className={styles.input}>
+                  <input
+                    id="cvv"
+                    name="cvv"
+                    type="text"
+                    placeholder="CVV *"
+                    onChange={formikPaymnet.handleChange}
+                    onBlur={formikPaymnet.handleBlur}
+                    value={formikPaymnet.values.cvv}
+                  />
+                  {formikPaymnet.touched.cvv && formikPaymnet.errors.cvv && (
+                    <div className={styles.error}>
+                      {formikPaymnet.errors.cvv}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </form>
+          </div>
+        );
       default:
         return <div>Unknown Step</div>;
     }
   };
 
+  const updateOrderStatus = () => {
+    const status = "Approved";
+    dispatch(updateOrderStatusThunk({ orderId, status }));
+  };
+
+  const updateUserInfo = () => {
+    const userData = {
+      name: formik.values.name,
+      surname: formik.values.surname,
+      address: formik.values.address,
+      zip: formik.values.zip,
+      country: formik.values.country,
+      town: formik.values.town,
+    };
+    dispatch(updateUserInfoThunk(userData));
+  };
+
+  const updateUserInfoPaypal = () => {
+    const userPaypal = {
+      cardNumber: formikPaymnet.values.cardNumber,
+      holder: formikPaymnet.values.holder,
+      month: formikPaymnet.values.month,
+      year: formikPaymnet.values.year,
+      cvv: formikPaymnet.values.cvv,
+    };
+    dispatch(updateUserInfoThunk(userPaypal));
+  };
+
+  const handleFinish = async () => {
+    if (formik.isValid && formik.dirty && formikPaymnet.isValid && formikPaymnet.dirty) {
+      try {
+        await updateOrderStatus(); 
+        await updateUserInfo();
+        await updateUserInfoPaypal();
+        await dispatch(deleteAllOrdersThunk());
+      } catch (error) {
+        console.error("İşlem sırasında bir hata oluştu:", error);
+      }
+    }
+  };
+  
+
   return (
     <div className={styles.checkoutHeader}>
       <Stepper
-        steps={steps.map((step, index) => ({
-          title: step,
-          onClick: handleStep(index),
-        }))}
         activeStep={activeStep}
-        activeColor="#000"
-        completeColor="#000"
-        circleFontSize={12}
-        size={25}
-      />
+        alternativeLabel
+        onClick={handleStep}
+        sx={{ width: "100%", backgroundColor: "transparent" }}
+      >
+        {steps.map((label, index) => (
+          <Step key={label}>
+            <StepLabel>{label}</StepLabel>
+          </Step>
+        ))}
+      </Stepper>
 
       <div className={styles.content}>{getStepContent(activeStep)}</div>
 
+      <div className={styles.paragraph}>
+        <p>
+          By continuing, I confirm that I was able to read and understand the
+          information on the use of my personal data, as explained in the
+          Privacy Policy.
+        </p>
+      </div>
+
       <div className={styles.buttons}>
         {activeStep > 1 && (
-          <button onClick={handleBack} className={styles.backButton}>
-            Back
+          <button onClick={handleBack} className={styles.back}>
+            Return
           </button>
         )}
 
         {activeStep < steps.length - 1 ? (
-          <button onClick={handleNext} className={styles.nextButton}>
-            Next
+          <button
+            onClick={handleNext}
+            className={styles.next}
+            disabled={!(formik.isValid && formik.dirty) && !(formikPaymnet.isValid && formikPaymnet.dirty)}
+          >
+            Continue
           </button>
         ) : (
           <button
-            onClick={() => alert("All steps completed!")}
-            className={styles.finishButton}
+            onClick={() => {
+              setIsFinish(true);
+              handleFinish()
+            }}
+            className={styles.next}
+            disabled={!(formikPaymnet.isValid && formikPaymnet.dirty)}
           >
-            Finish
+            Continue
           </button>
         )}
       </div>

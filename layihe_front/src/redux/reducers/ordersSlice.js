@@ -1,46 +1,50 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-
 export const successOrderThunk = createAsyncThunk(
-  'order/succesOrder',
+  "order/succesOrder",
   async ({ orderData }, { rejectWithValue }) => {
-    console.log(orderData);
-    
     try {
-      const token = localStorage.getItem("token"); 
+      const token = localStorage.getItem("token");
       if (!token) {
         return rejectWithValue("Token bulunamadı.");
       }
 
-      const response = await axios.post('http://localhost:5500/success/orders/', {
-        order: orderData, 
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`, 
+      const response = await axios.post(
+        "http://localhost:5500/success/orders/",
+        {
+          order: orderData,
         },
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      return response.data; 
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.response ? error.response.data.message : error.message);
+      return rejectWithValue(
+        error.response ? error.response.data.message : error.message
+      );
     }
   }
 );
 
-
 // Sipariş yaratmaq
 export const createOrderThunk = createAsyncThunk(
-  'order/createOrder',
+  "order/createOrder",
   async ({ orderData, userId }, { rejectWithValue }) => {
     try {
-      const response = await axios.post('http://localhost:5500/orders', {
+      const response = await axios.post("http://localhost:5500/orders", {
         order: orderData,
         userId: userId,
       });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response ? error.response.data.message : error.message);
+      return rejectWithValue(
+        error.response ? error.response.data.message : error.message
+      );
     }
   }
 );
@@ -49,34 +53,42 @@ export const createOrderThunk = createAsyncThunk(
 export const getUserOrdersThunk = createAsyncThunk(
   "order/getUserOrders",
   async (userId, { rejectWithValue }) => {
-    const token = localStorage.getItem("token"); 
+    const token = localStorage.getItem("token");
     if (!token) {
       return rejectWithValue("Token bulunamadı.");
     }
 
     try {
-      const response = await axios.get(`http://localhost:5500/orders/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        `http://localhost:5500/orders/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response ? error.response.data.message : error.message);
+      return rejectWithValue(
+        error.response ? error.response.data.message : error.message
+      );
     }
   }
 );
-
 
 // ID'ye göre sipariş getirmek
 export const getOrderByIdThunk = createAsyncThunk(
   "order/getOrderById",
   async (orderId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`http://localhost:5500/orders/order/${orderId}`);
+      const response = await axios.get(
+        `http://localhost:5500/orders/order/${orderId}`
+      );
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response ? error.response.data.message : error.message);
+      return rejectWithValue(
+        error.response ? error.response.data.message : error.message
+      );
     }
   }
 );
@@ -86,10 +98,48 @@ export const updateOrderStatusThunk = createAsyncThunk(
   "order/updateOrderStatus",
   async ({ orderId, status }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(`http://localhost:5500/orders/order/${orderId}`, { status });
+      const token = localStorage.getItem("token");
+
+      const response = await axios.put(
+        `http://localhost:5500/success/order/${orderId}`,
+        { status },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response ? error.response.data.message : error.message);
+      return rejectWithValue(
+        error.response ? error.response.data.message : error.message
+      );
+    }
+  }
+);
+
+//deleteSuccessOrder
+export const deleteSuccesOrderThunk = createAsyncThunk(
+  "success/order/deleteOrder",
+  async (itemId, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.delete(
+        `http://localhost:5500/success/orders/order/${itemId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response ? error.response.data.message : error.message
+      );
     }
   }
 );
@@ -101,21 +151,49 @@ export const deleteOrderThunk = createAsyncThunk(
     try {
       const token = localStorage.getItem("token");
 
-      const response = await axios.delete(`http://localhost:5500/orders/order/${itemId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.delete(
+        `http://localhost:5500/orders/order/${itemId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      return response.data; 
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.response ? error.response.data.message : error.message);
+      return rejectWithValue(
+        error.response ? error.response.data.message : error.message
+      );
     }
   }
 );
 
+export const deleteAllOrdersThunk = createAsyncThunk(
+  "order/deleteAllOrders",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("Token bulunamadı.");
+      }
 
-
+      const response = await axios.delete(
+        "http://localhost:5500/orders/delete",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Silme işlemi başarılı:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Silme işlemi hatası:", error.response ? error.response.data : error.message);
+      return rejectWithValue(error.response ? error.response.data.message : error.message);
+    }
+  }
+);
 
 
 export const ordersSlice = createSlice({
@@ -125,7 +203,7 @@ export const ordersSlice = createSlice({
     loading: false,
     error: null,
     orderDetails: null,
-    succesOrders: []
+    succesOrders: [],
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -186,27 +264,59 @@ export const ordersSlice = createSlice({
       .addCase(updateOrderStatusThunk.fulfilled, (state, action) => {
         state.loading = false;
         const updatedOrder = action.payload;
-        const index = state.orders.findIndex(order => order._id === updatedOrder._id);
+        const index = state.succesOrders.findIndex(
+          (order) => order._id === updatedOrder._id
+        );
         if (index !== -1) {
-          state.orders[index] = updatedOrder;
+          state.succesOrders[index] = updatedOrder;
         }
       })
       .addCase(updateOrderStatusThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
+
       //DELETE
       .addCase(deleteOrderThunk.pending, (state) => {
         state.loading = true;
       })
       .addCase(deleteOrderThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.orders = state.orders.filter(order => order._id !== action.payload.orderId);
+        state.orders = state.orders.filter(
+          (order) => order._id !== action.payload.orderId
+        );
       })
       .addCase(deleteOrderThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
+
+      //DELETE
+      .addCase(deleteSuccesOrderThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deleteSuccesOrderThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.succesOrders = state.succesOrders.filter(
+          (order) => order._id !== action.payload.orderId
+        );
+      })
+      .addCase(deleteSuccesOrderThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(deleteAllOrdersThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deleteAllOrdersThunk.fulfilled, (state) => {
+        state.loading = false;
+        state.orders = [];
+      })
+      .addCase(deleteAllOrdersThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 

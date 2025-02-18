@@ -30,14 +30,6 @@ const ordersSchema = new mongoose.Schema(
         },
       },
     ],
-    // address: {
-    //   fullName: { type: String, required: true },
-    //   city: { type: String, required: true },
-    //   district: { type: String, required: true },
-    //   street: { type: String, required: true },
-    //   zipCode: { type: String, required: true },
-    //   phone: { type: String, required: true },
-    // },
   },
   { timestamps: true }
 );

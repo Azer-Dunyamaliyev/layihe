@@ -3,7 +3,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-
+  gap: 20px;
+  padding: 40px 0;
   .content {
     width: 70%;
     margin-top: 40px;
@@ -58,6 +59,37 @@
       }
     }
 
+    .payment {
+      form {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+        .user_payment {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          .user_payment_inputs {
+            display: flex;
+            gap: 15px;
+
+            .input {
+              width: calc(100% / 2);
+            }
+          }
+        }
+
+        .card_details {
+          display: flex;
+          gap: 15px;
+          width: 50%;
+          .input {
+            width: calc(100% / 3);
+          }
+        }
+      }
+    }
+
     h2 {
       font-size: 18px;
       color: #000;
@@ -78,34 +110,71 @@
         background: #f0f0f0;
         border: 1px solid #f0f0f0;
         outline: none;
-  
+
         &::placeholder {
           font-weight: 400;
         }
-  
-        
       }
 
       .error {
         font-size: 12px;
-        color: #E04F4F;
+        color: #e04f4f;
         padding: 0 0 0 10px;
       }
     }
-
   }
 
-  // Buttonlar için stil
+  .paragraph {
+    width: 70%;
+
+    p {
+      font-size: 13px;
+      color: #000;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+  }
+
   .buttons {
+    width: 70%;
     margin-top: 20px;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    button {
+      width: 50%;
+      height: 53px;
+      background: #000;
+      border: 1px solid #000;
+      outline: none;
+      cursor: pointer;
+      color: #fff;
+      font-size: 16px;
+      border-radius: 50px;
+      transition: background 0.2s ease border 0.2s ease;
+      &.next:hover {
+        background: #fff;
+        color: #000;
+        transition: background 0.2s ease border 0.2s ease;
+
+        &:disabled {
+          background-color: #e04f4f;
+          cursor: not-allowed;
+        }
+      }
+
+      &.back {
+        background: #fff;
+        color: #000;
+
+        &:hover {
+          background: #000;
+          color: #fff;
+        }
+      }
+    }
   }
 
-  .backButton,
-  .nextButton,
-  .finishButton {
-    padding: 10px 20px;
-    cursor: pointer;
-  }
+ 
 }
