@@ -7,7 +7,9 @@ import cookieParser from 'cookie-parser';
 import productsRouter from './routes/productsRoute.js'
 import wishlistRouter from './routes/wihslistRoute.js'
 import ordersRouter from './routes/ordersRoute.js'
+import succesOrdersRouter from './routes/successOrderRoute.js'
 configDotenv();
+
 const app = express();
 
 // Middleware
@@ -31,6 +33,7 @@ app.use('/users', userRoutes);
 app.use("/products", productsRouter);
 app.use("/favorites", wishlistRouter);
 app.use("/orders", ordersRouter);
+app.use("/success", succesOrdersRouter);
 
 
 // DB Bağlantısı
