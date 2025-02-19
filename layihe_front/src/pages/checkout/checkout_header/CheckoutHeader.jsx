@@ -1,36 +1,41 @@
 import React, { useState, useEffect } from "react";
-import {
-  Stepper,
-  Step,
-  StepLabel,
-} from "@mui/material";
+import { Stepper, Step, StepLabel } from "@mui/material";
 import styles from "./checkoutheader.module.scss";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { deleteAllOrdersThunk, updateOrderStatusThunk } from "../../../redux/reducers/ordersSlice";
+import {
+  deleteAllOrdersThunk,
+  getOrderByIdThunk,
+  postPaymentThunk,
+  updateOrderStatusThunk,
+} from "../../../redux/reducers/ordersSlice";
 import { updateUserInfoThunk } from "../../../redux/reducers/userSlice";
+import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
 const steps = ["Details", "Delivery", "Payment"];
 
 const CheckoutHeader = () => {
-  const [activeStep, setActiveStep] = useState(1); 
-  const [isFinish, setIsFinish] = useState(false); 
-  const { orderId } = useParams(); 
   const dispatch = useDispatch();
-  useEffect(() => {
-    const savedStep = localStorage.getItem("activeStep");
-    if (savedStep) {
-      setActiveStep(parseInt(savedStep, 10)); 
-    }
-  }, []);
+  const { orderId } = useParams();
+  const [activeStep, setActiveStep] = useState(1);
+  const [isFinish, setIsFinish] = useState(false);
+  const stripe = useStripe();
+  const elements = useElements();
 
   useEffect(() => {
-    if (!isFinish) { 
-      localStorage.setItem("activeStep", activeStep);
+    if (orderId) {
+      dispatch(getOrderByIdThunk(orderId));
     }
-  }, [activeStep, isFinish]);
+  }, [dispatch, orderId]);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("payment_intent")) {
+      window.location.href = "http://localhost:3000/success"; 
+    }
+  }, []);
 
   const validationSchema = Yup.object({
     name: Yup.string().required("First Name is required"),
@@ -58,35 +63,28 @@ const CheckoutHeader = () => {
     },
   });
 
-  const formikPaymnet = useFormik({
-    initialValues: {
-      cardNumber: "",
-      holder: "",
-      month: "",
-      year: "",
-      cvv: "",
-    },
-    validationSchema: Yup.object({
-      cardNumber: Yup.string()
-        .matches(/^[0-9]{16}$/, "Card Number must be 16 digits")
-        .required("Card Number is required"),
-      holder: Yup.string().required("Card Holder is required"),
-      month: Yup.string()
-        .matches(/^(0[1-9]|1[0-2])$/, "Month must be 2 digits (01-12)")
-        .required("Expiration Month is required"),
-      year: Yup.string()
-        .matches(/^[0-9]{4}$/, "Year must be 4 digits")
-        .required("Expiration Year is required"),
-      cvv: Yup.string()
-        .matches(/^[0-9]{3}$/, "CVV must be 3 digits")
-        .required("CVV is required"),
-    }),
-    validateOnBlur: true,
-    validateOnChange: true,
-    onSubmit: (values) => {
-      alert(JSON.stringify(values, null, 2));
-    },
-  });
+  const handlePayment = async () => {
+    if (!stripe || !elements) return;
+
+    const cardElement = elements.getElement(CardElement);
+
+    const { paymentMethod, error } = await stripe.createPaymentMethod({
+      type: "card",
+      card: cardElement,
+    });
+
+    if (error) {
+      console.error("Payment Error:", error);
+      return;
+    }
+
+    dispatch(
+      postPaymentThunk({
+        paymentMethodId: paymentMethod.id,
+        orderId: orderId,
+      })
+    );
+  };
 
   const handleNext = () => {
     if (activeStep < steps.length - 1) {
@@ -228,99 +226,10 @@ const CheckoutHeader = () => {
       case 2:
         return (
           <div className={styles.payment}>
-            <form onSubmit={formikPaymnet.handleSubmit}>
-              <div className={styles.user_payment}>
-                <h2>Details for card</h2>
-                <div className={styles.user_payment_inputs}>
-                  <div className={styles.input}>
-                    <input
-                      id="cardNumber"
-                      name="cardNumber"
-                      type="text"
-                      placeholder="Card Number *"
-                      onChange={formikPaymnet.handleChange}
-                      onBlur={formikPaymnet.handleBlur}
-                      value={formikPaymnet.values.cardNumber}
-                    />
-                    {formikPaymnet.touched.cardNumber &&
-                      formikPaymnet.errors.cardNumber && (
-                        <div className={styles.error}>
-                          {formikPaymnet.errors.cardNumber}
-                        </div>
-                      )}
-                  </div>
-                  <div className={styles.input}>
-                    <input
-                      id="holder"
-                      name="holder"
-                      type="text"
-                      placeholder="Card Holder *"
-                      onChange={formikPaymnet.handleChange}
-                      onBlur={formikPaymnet.handleBlur}
-                      value={formikPaymnet.values.holder}
-                    />
-                    {formikPaymnet.touched.holder &&
-                      formikPaymnet.errors.holder && (
-                        <div className={styles.error}>
-                          {formikPaymnet.errors.holder}
-                        </div>
-                      )}
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.card_details}>
-                <div className={styles.input}>
-                  <input
-                    id="month"
-                    name="month"
-                    type="text"
-                    placeholder="Month *"
-                    onChange={formikPaymnet.handleChange}
-                    onBlur={formikPaymnet.handleBlur}
-                    value={formikPaymnet.values.month}
-                  />
-                  {formikPaymnet.touched.month &&
-                    formikPaymnet.errors.month && (
-                      <div className={styles.error}>
-                        {formikPaymnet.errors.month}
-                      </div>
-                    )}
-                </div>
-                <div className={styles.input}>
-                  <input
-                    id="year"
-                    name="year"
-                    type="text"
-                    placeholder="Year *"
-                    onChange={formikPaymnet.handleChange}
-                    onBlur={formikPaymnet.handleBlur}
-                    value={formikPaymnet.values.year}
-                  />
-                  {formikPaymnet.touched.year && formikPaymnet.errors.year && (
-                    <div className={styles.error}>
-                      {formikPaymnet.errors.year}
-                    </div>
-                  )}
-                </div>
-                <div className={styles.input}>
-                  <input
-                    id="cvv"
-                    name="cvv"
-                    type="text"
-                    placeholder="CVV *"
-                    onChange={formikPaymnet.handleChange}
-                    onBlur={formikPaymnet.handleBlur}
-                    value={formikPaymnet.values.cvv}
-                  />
-                  {formikPaymnet.touched.cvv && formikPaymnet.errors.cvv && (
-                    <div className={styles.error}>
-                      {formikPaymnet.errors.cvv}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </form>
+            <h2 style={{margin: "0 0 20px"}}>Details for card</h2>
+            <CardElement
+              className={styles.cardElement}
+            />
           </div>
         );
       default:
@@ -328,47 +237,18 @@ const CheckoutHeader = () => {
     }
   };
 
-  const updateOrderStatus = () => {
-    const status = "Approved";
-    dispatch(updateOrderStatusThunk({ orderId, status }));
-  };
-
-  const updateUserInfo = () => {
-    const userData = {
-      name: formik.values.name,
-      surname: formik.values.surname,
-      address: formik.values.address,
-      zip: formik.values.zip,
-      country: formik.values.country,
-      town: formik.values.town,
-    };
-    dispatch(updateUserInfoThunk(userData));
-  };
-
-  const updateUserInfoPaypal = () => {
-    const userPaypal = {
-      cardNumber: formikPaymnet.values.cardNumber,
-      holder: formikPaymnet.values.holder,
-      month: formikPaymnet.values.month,
-      year: formikPaymnet.values.year,
-      cvv: formikPaymnet.values.cvv,
-    };
-    dispatch(updateUserInfoThunk(userPaypal));
-  };
-
   const handleFinish = async () => {
-    if (formik.isValid && formik.dirty && formikPaymnet.isValid && formikPaymnet.dirty) {
+    if (formik.isValid && formik.dirty) {
       try {
-        await updateOrderStatus(); 
-        await updateUserInfo();
-        await updateUserInfoPaypal();
+        await handlePayment();
+        await dispatch(updateOrderStatusThunk({ orderId, status: "Approved" }));
+        await dispatch(updateUserInfoThunk(formik.values));
         await dispatch(deleteAllOrdersThunk());
       } catch (error) {
         console.error("İşlem sırasında bir hata oluştu:", error);
       }
     }
   };
-  
 
   return (
     <div className={styles.checkoutHeader}>
@@ -406,7 +286,7 @@ const CheckoutHeader = () => {
           <button
             onClick={handleNext}
             className={styles.next}
-            disabled={!(formik.isValid && formik.dirty) && !(formikPaymnet.isValid && formikPaymnet.dirty)}
+            disabled={!(formik.isValid && formik.dirty)}
           >
             Continue
           </button>
@@ -414,10 +294,9 @@ const CheckoutHeader = () => {
           <button
             onClick={() => {
               setIsFinish(true);
-              handleFinish()
+              handleFinish();
             }}
             className={styles.next}
-            disabled={!(formikPaymnet.isValid && formikPaymnet.dirty)}
           >
             Continue
           </button>

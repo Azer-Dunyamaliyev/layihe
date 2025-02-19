@@ -1,14 +1,19 @@
 import React, { useEffect } from "react";
 import styles from "./shopping.module.scss";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteSuccesOrderThunk, getUserOrdersThunk, successOrderThunk, updateOrderStatusThunk } from "../../../../redux/reducers/ordersSlice";
+import {
+  deleteSuccesOrderThunk,
+  getUserOrdersThunk,
+  successOrderThunk,
+  updateOrderStatusThunk,
+} from "../../../../redux/reducers/ordersSlice";
 import { useNavigate } from "react-router-dom";
 
 const Shopping = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const orders = useSelector((state) => state.orders.orders);
-  const userId = "USER_ID"; 
+  const userId = "USER_ID";
 
   const totalPrice = orders.reduce((total, order) => {
     const orderTotal = order.orders.reduce((orderSum, item) => {
@@ -24,34 +29,35 @@ const Shopping = () => {
   const handleBuy = async () => {
     const orderData = {
       userId,
-      totalPrice, 
-      products: orders.flatMap(order => order.orders.map(item => ({
-        productId: item.productId._id, 
-        quantity: item.quantity,
-        selectedColor: item.selectedColor,
-        selectedSize: item.selectedSize,
-        totalPrice: totalWithDelivery,
-        price: item.price,
-      }))),
+      totalPrice,
+      products: orders.flatMap((order) =>
+        order.orders.map((item) => ({
+          productId: item.productId._id,
+          quantity: item.quantity,
+          selectedColor: item.selectedColor,
+          selectedSize: item.selectedSize,
+          totalPrice: totalWithDelivery,
+          price: item.price,
+        }))
+      ),
       deliveryFee,
-      totalWithDelivery
+      totalWithDelivery,
     };
 
     try {
       const response = await dispatch(successOrderThunk({ orderData }));
-    
-      if (response.meta.requestStatus === 'fulfilled') {
+
+      if (response.meta.requestStatus === "fulfilled") {
         const orderId = response.payload.order._id;
         navigate(`/checkout/${orderId}`);
-    
+
         setTimeout(() => {
           dispatch(deleteSuccesOrderThunk({ orderId }));
         }, 3600000);
       }
     } catch (error) {
-      console.error('Sipariş kaydedilemedi:', error);
+      console.error("Sipariş kaydedilemedi:", error);
     }
-    
   };
 
   useEffect(() => {
@@ -66,7 +72,10 @@ const Shopping = () => {
             Subtotal: <span>{totalPrice}$</span>
           </p>
           <p>
-            Delivery: <span>{deliveryFee > 0 ? `${deliveryFee.toFixed(2)}$` : "Free"}</span>
+            Delivery:{" "}
+            <span>
+              {deliveryFee > 0 ? `${deliveryFee.toFixed(2)}$` : "Free"}
+            </span>
           </p>
           <div>
             <p>
@@ -75,7 +84,7 @@ const Shopping = () => {
             </p>
             <h6>Taxes included</h6>
           </div>
-          <button onClick={handleBuy}>Buy</button> 
+          {orders.length > 0 && <button onClick={handleBuy}>Buy</button>}
         </div>
         <div className={styles.lists}>
           <p>

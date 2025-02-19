@@ -93,6 +93,41 @@ export const getOrderByIdThunk = createAsyncThunk(
   }
 );
 
+//Payment
+
+export const postPaymentThunk = createAsyncThunk(
+  "orders/payment",
+  async ({ paymentMethodId, orderId }, { rejectWithValue, getState }) => {
+    try {
+      const token = localStorage.getItem("token"); 
+      if (!token) throw new Error("No token found!");
+
+      const response = await axios.post(
+        "http://localhost:5500/orders/payment",
+        { paymentMethodId, orderId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, 
+          },
+        }
+      );
+
+      if (response.data.success) {
+        window.location.href = "http://localhost:3000/success"; 
+      }
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response ? error.response.data.message : error.message
+      );
+    }
+  }
+);
+
+
+
+
 // Sipariş veziyyetini güncellemek
 export const updateOrderStatusThunk = createAsyncThunk(
   "order/updateOrderStatus",
@@ -256,6 +291,21 @@ export const ordersSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+
+      //POST PAYMENT
+
+      .addCase(postPaymentThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(postPaymentThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.orderDetails = action.payload;
+      })
+      .addCase(postPaymentThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+  
 
       //PUT
       .addCase(updateOrderStatusThunk.pending, (state) => {

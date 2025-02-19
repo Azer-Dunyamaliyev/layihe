@@ -6,6 +6,7 @@ import wishListModel from "../models/wishlistModel.js";
 import ordersModel from "../models/ordersModel.js";
 import mongoose from "mongoose";
 import successOrderModel from "../models/successOrdersModel.js";
+import Stripe from "stripe";
 
 // GET
 const getAllUsers = async (req, res) => {
@@ -456,6 +457,59 @@ const successOrders = async (req, res) => {
   }
 };
 
+const postStripe = async (req, res) => {
+  const userId = req.user.userId;
+  const { paymentMethodId, orderId } = req.body;
+  const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid orderId format" });
+    }
+
+    const order = await successOrderModel
+      .findOne({ _id: orderId, userId })
+      .lean(); 
+
+    if (!order) {
+      return res.status(404).json({ success: false, error: "Order not found" });
+    }
+
+    if (!order.totalPrice) {
+      return res
+        .status(400)
+        .json({ success: false, error: "totalPrice is missing in order" });
+    }
+
+    const amountInCents = Math.round(order.totalPrice * 100);
+    console.log("Amount (Stripe için kuruş cinsinden):", amountInCents);
+
+    if (amountInCents < 50) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          error: "Minimum amount must be at least 50 cents",
+        });
+    }
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amountInCents,
+      currency: "usd",
+      payment_method: paymentMethodId,
+      confirm: true,
+      return_url: "http://localhost:3000/success",
+    });
+
+    res.json({ success: true, paymentIntent });
+  } catch (error) {
+    console.error("Stripe Payment Error:", error);
+    res.status(400).json({ success: false, error: error.message });
+  }
+};
+
 //PUT
 
 const updateUserName = async (req, res) => {
@@ -582,11 +636,11 @@ const updateUserInfo = async (req, res) => {
       address,
       country,
       town,
-      cardNumber,
-      holder,
-      month,
-      year,
-      cvv,
+      // cardNumber,
+      // holder,
+      // month,
+      // year,
+      // cvv,
     } = req.body;
     const updateData = {
       name,
@@ -596,9 +650,9 @@ const updateUserInfo = async (req, res) => {
       town,
     };
 
-    if (cardNumber && holder && month && year && cvv) {
-      updateData.cards = [{ cardNumber, holder, month, year, cvv }];
-    }
+    // if (cardNumber && holder && month && year && cvv) {
+    //   updateData.cards = [{ cardNumber, holder, month, year, cvv }];
+    // }
 
     const updatedUser = await userModel.findByIdAndUpdate(
       req.user.userId,
@@ -740,12 +794,8 @@ const deleteOrder = async (req, res) => {
 
 const deleteAllOrders = async (req, res) => {
   try {
-    console.log("deleteAllOrders fonksiyonu başlatıldı.");
     const userId = new mongoose.Types.ObjectId(req.user.userId);
-    console.log("userId:", userId); // userId'nin doğru alınıp alınmadığını kontrol et.
-    
     const deletedOrders = await ordersModel.deleteMany({ userId });
-    console.log("deletedOrders:", deletedOrders);
 
     if (deletedOrders.deletedCount === 0) {
       console.log("Silinecek sipariş bulunamadı");
@@ -759,7 +809,6 @@ const deleteAllOrders = async (req, res) => {
     res.status(500).json({ message: "Siparişler silinirken hata oluştu" });
   }
 };
-
 
 export {
   userRegister,
@@ -786,4 +835,5 @@ export {
   successOrders,
   updateUserInfo,
   deleteAllOrders,
+  postStripe,
 };

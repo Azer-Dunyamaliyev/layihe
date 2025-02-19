@@ -13,15 +13,15 @@ const userSchema = mongoose.Schema(
     zip: { type: String, default: "" },
     country: { type: String, default: "" },
     town: { type: String, default: "" },
-    cards: [
-      {
-        cardNumber: { type: String, default: "" },
-        holder: { type: String, default: "" },
-        month: { type: String, default: "" },
-        year: { type: String, default: "" },
-        cvv: { type: String, default: "" },
-      },
-    ],
+    // cards: [
+    //   {
+    //     cardNumber: { type: String, default: "" },
+    //     holder: { type: String, default: "" },
+    //     month: { type: String, default: "" },
+    //     year: { type: String, default: "" },
+    //     cvv: { type: String, default: "" },
+    //   },
+    // ],
   },
   { timestamps: true }
 );

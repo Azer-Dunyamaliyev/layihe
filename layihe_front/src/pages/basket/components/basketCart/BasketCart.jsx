@@ -157,12 +157,12 @@ const BasketCart = () => {
                 );
               })
             ) : (
-              <p>No items found in this order.</p>
+              <p></p>
             )}
           </div>
         ))
       ) : (
-        <p>No orders found.</p>
+        <p></p>
       )}
     </div>
   );

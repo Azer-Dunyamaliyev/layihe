@@ -13,6 +13,7 @@ import Detailpro from '../pages/detail/Detailpro'
 import Basket from '../pages/basket/Basket'
 import About from '../pages/about/About'
 import Checkout from '../pages/checkout/Checkout'
+import Success from '../pages/success/Success'
 const Router = () => {
   return (
     <BrowserRouter>
@@ -31,6 +32,8 @@ const Router = () => {
         <Route path='/basket' element={<Basket />} />
         <Route path='/about' element={<About />} />
         <Route path='/checkout/:orderId' element={<Checkout />} />
+        <Route path='/success' element={<Success />} />
+
       </Routes>
     </BrowserRouter>
   )
