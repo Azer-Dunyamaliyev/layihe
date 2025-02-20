@@ -12,11 +12,10 @@ const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { token, username } = useSelector((state) => state.users);
-  const [isOpenSea, setIsOpenSea] = useState(false);
   const [isOpen, setIsOpen] = React.useState(false);
   const { me, loading } = useSelector((state) => state.users);
   const orders = useSelector((state) => state.basket.orders);
-  const userId = 'USER_ID'
+  const userId = "USER_ID";
 
   const toggleDrawer = () => {
     setIsOpen((prevState) => !prevState);
@@ -30,39 +29,13 @@ const Header = () => {
   useEffect(() => {
     dispatch(getMeThunk());
     dispatch(getUserOrders(userId));
-  }, [dispatch,userId]);
+  }, [dispatch, userId]);
 
   return (
     <div className={styles.header}>
       <div className="container">
         <div className={styles.content}>
-          <form
-            action=""
-            className={`${styles.search_form} ${
-              !isOpenSea ? styles.active : ""
-            }`}
-            style={{
-              width: token ? "calc(100% - 320px)" : "calc(100% - 283px)",
-            }}
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <input type="text" placeholder="SEARCH" />
-            <button onClick={() => setIsOpenSea(!isOpenSea)}>
-              <svg
-                width="24"
-                height="24"
-                role="img"
-                aria-hidden="true"
-                className="icon-content"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="m12.707 12 2.647 2.646-.708.708L12 12.707l-2.646 2.647-.708-.708L11.293 12 8.646 9.354l.708-.708L12 11.293l2.646-2.647.708.708z"></path>
-              </svg>
-            </button>
-          </form>
-          <nav className={`${styles.nv} ${isOpenSea ? styles.active : ""}`}>
+          <nav className={styles.nv}>
             <ul>
               <li>
                 <Link to={"/"}>Home</Link>
@@ -129,27 +102,19 @@ const Header = () => {
               <img src={logo} alt="lg" />
             </Link>
           </nav>
-          <Link
-            to={"/"}
-            className={`${styles.logo} ${isOpenSea ? styles.active : ""}`}
-          >
+          <Link to={"/"} className={styles.logo}>
             <img src={logo} alt="lg" />
           </Link>
           <ul>
-            <li>
-              <Link
-                className={`${styles.open_search} ${
-                  isOpenSea ? styles.active : ""
-                }`}
-              >
-                <button onClick={() => setIsOpenSea(!isOpenSea)}>SEARCH</button>
-              </Link>
-            </li>
             {token ? (
               <li className={styles.account}>
                 <Link to="/account">My Account</Link>
                 <div className={styles.module}>
-                  {loading ? <h3>Loading...</h3> : <h3>{me.username}</h3>}
+                  {loading ? (
+                    <h3>Loading...</h3>
+                  ) : (
+                    <h3>Hello {me.name || me.username || me.email || "User"}</h3>
+                  )}
                   <ul>
                     <li onClick={() => navigate("/account")}>
                       <Link>My account</Link>
@@ -215,30 +180,7 @@ const Header = () => {
           </ul>
           <ul className={styles.res}>
             <li>
-              <Link
-                className={`${styles.open_search} ${
-                  isOpenSea ? styles.active : ""
-                }`}
-              >
-                <button onClick={() => setIsOpenSea(!isOpenSea)}>
-                  <svg
-                    width="24"
-                    height="24"
-                    role="img"
-                    aria-hidden="true"
-                    className="Icon_icon-content-1__kPDLF Icons_icon__rdhbo"
-                    xmlns="http://www.w3.org/2000/svg"
-                    xml="preserve"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M18 10.5C18 6.364 14.636 3 10.5 3S3 6.364 3 10.5 6.364 18 10.5 18a7.46 7.46 0 0 0 4.93-1.862l4.716 4.716.708-.708-4.716-4.715A7.46 7.46 0 0 0 18 10.5M10.5 17C6.916 17 4 14.084 4 10.5S6.916 4 10.5 4 17 6.916 17 10.5 14.084 17 10.5 17"></path>
-                  </svg>
-                </button>
-              </Link>
-            </li>
-            <li>
               <Link to={token ? "/account" : "/login"}>
-                {/* Kullanıcı ikonu */}
                 <svg
                   width="24"
                   height="24"

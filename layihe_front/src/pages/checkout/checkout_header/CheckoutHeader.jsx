@@ -4,7 +4,7 @@ import styles from "./checkoutheader.module.scss";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useParams } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   deleteAllOrdersThunk,
   getOrderByIdThunk,
@@ -21,6 +21,7 @@ const CheckoutHeader = () => {
   const { orderId } = useParams();
   const [activeStep, setActiveStep] = useState(1);
   const [isFinish, setIsFinish] = useState(false);
+  const { me, loading } = useSelector((state) => state.users);
   const stripe = useStripe();
   const elements = useElements();
 
@@ -48,12 +49,12 @@ const CheckoutHeader = () => {
 
   const formik = useFormik({
     initialValues: {
-      name: "",
-      surname: "",
-      address: "",
-      zip: "",
-      country: "",
-      town: "",
+      name: me?.name || "",
+      surname: me?.surname || "",
+      address: me?.address || "",
+      zip: me?.zip || "",
+      country: me?.country || "",
+      town: me?.town || "",
     },
     validationSchema,
     validateOnBlur: true,

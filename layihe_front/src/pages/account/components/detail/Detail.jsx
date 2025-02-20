@@ -5,8 +5,10 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   deleteUserThunk,
   getMeThunk,
+  updateNameThunk,
   updatePasswordThunk,
   updatePhoneThunk,
+  updateSurNameThunk,
   updateUsernameThunk,
 } from "../../../../redux/reducers/userSlice";
 import Drawer from "react-modern-drawer";
@@ -37,13 +39,25 @@ const countryOptions = [
 
 const Detail = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { me, loading, error } = useSelector((state) => state.users);
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countryOptions[0]);
   const [errorMessage, setErrorMessage] = useState(null);
-  
+
+  // USER NAME DRWAER
+  const [isUserRealNameOpen, setIsUserRealNameOpen] = React.useState(false);
+  const toggleUserRealNameDrawer = () => {
+    setIsUserRealNameOpen((prevState) => !prevState);
+  };
+
+  // USER SURNAME DRWAER
+  const [isUserSurNameOpen, setIsUserSurNameOpen] = React.useState(false);
+  const toggleUserSurNameDrawer = () => {
+    setIsUserSurNameOpen((prevState) => !prevState);
+  };
+
   // USERNAME DRWAER
   const [isUserNameOpen, setIsUserNameOpen] = React.useState(false);
   const toggleUserNameDrawer = () => {
@@ -81,6 +95,34 @@ const Detail = () => {
         console.error("Error deleting account:", error);
       });
   };
+
+  //USER FORMIK
+  const formikUserRealName = useFormik({
+    initialValues: {
+      name: me.name || "",
+    },
+    enableReinitialize: true,
+    onSubmit: (values) => {
+      dispatch(updateNameThunk(values.name)).then(() => {
+        dispatch(getMeThunk());
+        toggleUserRealNameDrawer();
+      });
+    },
+  });
+
+   //SURUSER FORMIK
+   const formikUserSurName = useFormik({
+    initialValues: {
+      surname: me.surname || "",
+    },
+    enableReinitialize: true,
+    onSubmit: (values) => {
+      dispatch(updateSurNameThunk(values.surname)).then(() => {
+        dispatch(getMeThunk());
+        toggleUserSurNameDrawer();
+      });
+    },
+  });
 
   //USER FORMIK
   const formikUserName = useFormik({
@@ -133,9 +175,9 @@ const Detail = () => {
     }),
     enableReinitialize: true,
     onSubmit: (values) => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       dispatch(updatePhoneThunk({ ...values, token }));
-      toggleMobileDrawer()
+      toggleMobileDrawer();
     },
   });
 
@@ -200,10 +242,136 @@ const Detail = () => {
                       <label htmlFor="">NAME</label>
                       {loading ? (
                         <h5>Loading...</h5>
+                      ) : me.name ? (
+                        <h5>{me.name} </h5>
+                      ) : (
+                        <h5>What’s your name?</h5>
+                      )}
+
+                      <Drawer
+                        open={isUserRealNameOpen}
+                        onClose={toggleUserRealNameDrawer}
+                        direction="right"
+                        className={styles.sidebar}
+                        style={{ width: "500px", padding: "0 40px" }}
+                      >
+                        <div className={styles.menu}>
+                          <div className={styles.texts}>
+                            <div className={styles.head}>
+                              <h3>Edit name</h3>
+                              <button onClick={toggleUserRealNameDrawer}>
+                                <svg
+                                  width="24"
+                                  height="24"
+                                  role="img"
+                                  className="Icon_icon-content-1__kPDLF"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  xml="preserve"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path d="M17.354 7.354 12.707 12l4.647 4.646-.708.708L12 12.707l-4.646 4.647-.708-.708L11.293 12 6.646 7.354l.708-.708L12 11.293l4.646-4.647z"></path>
+                                  <title lang="en">Close</title>
+                                </svg>
+                              </button>
+                            </div>
+                            <form onSubmit={formikUserRealName.handleSubmit}>
+                              <input
+                                id="name"
+                                name="name"
+                                placeholder={
+                                  formikUserRealName.values.name === ""
+                                    ? "Name"
+                                    : ""
+                                }
+                                type="text"
+                                onChange={formikUserRealName.handleChange}
+                                value={formikUserRealName.values.name}
+                              />
+
+                              <button type="submit">Save</button>
+                            </form>
+                          </div>
+                        </div>
+                      </Drawer>
+                    </div>
+                    <button onClick={toggleUserRealNameDrawer}>
+                      {me.name ? "Edit" : "Add"}
+                    </button>
+                  </div>
+                </li>
+                <li>
+                  <div className={styles.user_detail}>
+                    <div className={styles.title}>
+                      <label htmlFor="">SURNAME</label>
+                      {loading ? (
+                        <h5>Loading...</h5>
+                      ) : me.surname ? (
+                        <h5>{me.surname} </h5>
+                      ) : (
+                        <h5>What’s your surname?</h5>
+                      )}
+
+                      <Drawer
+                        open={isUserSurNameOpen}
+                        onClose={toggleUserSurNameDrawer}
+                        direction="right"
+                        className={styles.sidebar}
+                        style={{ width: "500px", padding: "0 40px" }}
+                      >
+                        <div className={styles.menu}>
+                          <div className={styles.texts}>
+                            <div className={styles.head}>
+                              <h3>Edit surname</h3>
+                              <button onClick={toggleUserSurNameDrawer}>
+                                <svg
+                                  width="24"
+                                  height="24"
+                                  role="img"
+                                  className="Icon_icon-content-1__kPDLF"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  xml="preserve"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path d="M17.354 7.354 12.707 12l4.647 4.646-.708.708L12 12.707l-4.646 4.647-.708-.708L11.293 12 6.646 7.354l.708-.708L12 11.293l4.646-4.647z"></path>
+                                  <title lang="en">Close</title>
+                                </svg>
+                              </button>
+                            </div>
+                            <form onSubmit={formikUserSurName.handleSubmit}>
+                              <input
+                                id="surname"
+                                name="surname"
+                                placeholder={
+                                  formikUserSurName.values.surname === ""
+                                    ? "Surname"
+                                    : ""
+                                }
+                                type="text"
+                                onChange={formikUserSurName.handleChange}
+                                value={formikUserSurName.values.surname}
+                              />
+
+                              <button type="submit">Save</button>
+                            </form>
+                          </div>
+                        </div>
+                      </Drawer>
+                    </div>
+                    <button onClick={toggleUserSurNameDrawer}>
+                      {me.surname ? "Edit" : "Add"}
+                    </button>
+                  </div>
+                </li>
+                <li>
+                  <div className={styles.user_detail}>
+                    <div className={styles.title}>
+                      <label htmlFor="">USERNAME</label>
+                      {loading ? (
+                        <h5>Loading...</h5>
                       ) : me.username ? (
                         <h5>{me.username} </h5>
                       ) : (
-                        <h5>What’s your name?</h5>
+                        <h5>What’s your username?</h5>
                       )}
 
                       <Drawer
@@ -216,7 +384,7 @@ const Detail = () => {
                         <div className={styles.menu}>
                           <div className={styles.texts}>
                             <div className={styles.head}>
-                              <h3>Edit name</h3>
+                              <h3>Edit username</h3>
                               <button onClick={toggleUserNameDrawer}>
                                 <svg
                                   width="24"

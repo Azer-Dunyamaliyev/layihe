@@ -22,7 +22,11 @@ const Account = () => {
         <div className="container">
           <div className={styles.content}>
             <div className={styles.texts}>
-              {loading ? <h3>Loading...</h3> : <h3>{me.username || "User"}</h3>}
+              {loading ? (
+                <h3>Loading...</h3>
+              ) : (
+                <h3>{me.name || me.username || "USER"}</h3>
+              )}
               <ul>
                 <li>
                   <div className={styles.title}>
@@ -134,7 +138,9 @@ const Account = () => {
                         ></path>
                       </svg>
                     </span>
-                    <Link>Personal details</Link>
+                    <Link onClick={() => navigate("/detail")}>
+                      Personal details
+                    </Link>
                   </div>
                   <span>
                     <svg
@@ -151,7 +157,7 @@ const Account = () => {
                     </svg>
                   </span>
                 </li>
-                <li>
+                <li onClick={() => navigate("/address")}>
                   <div className={styles.title}>
                     <span>
                       <svg
@@ -191,7 +197,7 @@ const Account = () => {
                         ></path>
                       </svg>
                     </span>
-                    <Link>Addresses</Link>
+                    <Link onClick={() => navigate("/address")}>Addresses</Link>
                   </div>
                   <span>
                     <svg

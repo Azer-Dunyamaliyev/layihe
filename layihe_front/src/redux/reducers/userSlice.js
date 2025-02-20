@@ -71,8 +71,8 @@ export const logout = () => (dispatch) => {
   dispatch(clearOrders());
 };
 
-// { UPDATE USER - USERNAME}
 
+// { UPDATE USER - USERNAME}
 export const updateUsernameThunk = createAsyncThunk(
   "users/updateUsername",
   async (username, thunkAPI) => {
@@ -81,6 +81,52 @@ export const updateUsernameThunk = createAsyncThunk(
       const response = await axios.put(
         "http://localhost:5500/users/update/username",
         { username },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Token gönderme
+          },
+          withCredentials: true,
+        }
+      );
+      return response.data; // Yeni kullanıcı verisi
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data); // Hata durumunda
+    }
+  }
+);
+
+// { UPDATE USER - NAME}
+export const updateNameThunk = createAsyncThunk(
+  "users/updateName",
+  async (name, thunkAPI) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.put(
+        "http://localhost:5500/users/update/name",
+        { name },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Token gönderme
+          },
+          withCredentials: true,
+        }
+      );
+      return response.data; // Yeni kullanıcı verisi
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data); // Hata durumunda
+    }
+  }
+);
+
+// { UPDATE USER - SURNAME}
+export const updateSurNameThunk = createAsyncThunk(
+  "users/updateSurName",
+  async (surname, thunkAPI) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.put(
+        "http://localhost:5500/users/update/surname",
+        { surname },
         {
           headers: {
             Authorization: `Bearer ${token}`, // Token gönderme
@@ -206,6 +252,55 @@ export const updatePhoneThunk = createAsyncThunk(
   }
 );
 
+// { UPDATE ADDRESS }
+
+export const updateAddressThunk = createAsyncThunk(
+  "users/updateAddress",
+  async (address, thunkAPI) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.put(
+        "http://localhost:5500/users/update/address",
+        { address },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, 
+          },
+          withCredentials: true,
+        }
+      );
+      return response.data; 
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data); 
+    }
+  }
+);
+
+// { UPDATE TOWN }
+
+export const updateTownThunk = createAsyncThunk(
+  "users/updateTown",
+  async (town, thunkAPI) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.put(
+        "http://localhost:5500/users/update/town",
+        { town },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, 
+          },
+          withCredentials: true,
+        }
+      );
+      return response.data; 
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data); 
+    }
+  }
+);
+
+
 //{ DELETE USER}
 
 export const deleteUserThunk = createAsyncThunk(
@@ -232,6 +327,8 @@ export const userSlice = createSlice({
     error: null,
     users: [],
     me: {
+      name: "",
+      surname: "",
       username: "",
       email: "",
       password: "",
@@ -329,6 +426,58 @@ export const userSlice = createSlice({
         state.loading = true;
       })
       .addCase(updateUsernameThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
+       // { UPDATE NAME }
+       .addCase(updateNameThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.name = action.payload; 
+      })
+      .addCase(updateNameThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateNameThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
+       // { UPDATE SURNAME }
+       .addCase(updateSurNameThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.surname = action.payload; 
+      })
+      .addCase(updateSurNameThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateSurNameThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
+      // { UPDATE USER ADDRESS }
+      .addCase(updateAddressThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.address = action.payload; 
+      })
+      .addCase(updateAddressThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateAddressThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
+      // { UPDATE USER TOWN }
+      .addCase(updateTownThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.town = action.payload; 
+      })
+      .addCase(updateTownThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateTownThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       })
