@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import successOrderModel from "../models/successOrdersModel.js";
 import Stripe from "stripe";
 
+
 // GET
 const getAllUsers = async (req, res) => {
   try {
@@ -50,6 +51,16 @@ const getProducts = async (req, res) => {
 
 const getAllProducts = async (req, res) => {
   try {
+    const products = await productsModel.find(); 
+    res.status(200).json(products); 
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong." });
+  }
+};
+
+const getAllNameProducts = async (req, res) => {
+  try {
     const { name } = req.params;
 
     const filter = {};
@@ -84,25 +95,21 @@ const getWishList = async (req, res) => {
       model: productsModel,
     });
 
-    // Her favori için renk bilgisini kontrol et
     const favoritesWithColor = favorites.map((favorite) => {
       const product = favorite.productId;
 
-      // Eğer ürün varyantları varsa, seçilen rengin doğru olduğuna emin ol
       const selectedColor = product.variants
         ? product.variants.find(
             (variant) => variant.color === favorite.selectedColor
           )
         : null;
 
-      // Favoriyi dönmeden önce renk bilgisini ekliyoruz
       return {
         ...favorite.toObject(),
         selectedColor: selectedColor ? selectedColor.color : null,
       };
     });
 
-    // Favori listesi ile birlikte renk bilgilerini döndür
     res.json(favoritesWithColor);
   } catch (error) {
     console.error("Favori Listesi Hatası:", error);
@@ -217,7 +224,6 @@ const userLogin = async (req, res) => {
       expiresIn: "7d",
     });
 
-    // Token'ı Cookie'ye qoyuruq
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -303,7 +309,6 @@ const addWishlist = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // Eğer ürün variantlıysa ve renk seçilmemişse hata ver
     if (product.variants && product.variants.length > 1 && !selectedColor) {
       return res
         .status(400)
@@ -320,7 +325,6 @@ const addWishlist = async (req, res) => {
       }
     }
 
-    // Favori kontrolü, aynı ürün ve renk için engellemeyi sağlıyor
     const existingFavorite = await wishListModel.findOne({
       userId,
       productId,
@@ -332,7 +336,6 @@ const addWishlist = async (req, res) => {
       });
     }
 
-    // Yeni favori kaydı oluşturuluyor
     const newFavorite = new wishListModel({
       userId,
       productId,
@@ -340,7 +343,6 @@ const addWishlist = async (req, res) => {
       images: productImages,
     });
 
-    // Kaydetme işlemi
     const savedFavorite = await newFavorite.save();
 
     res.status(201).json(savedFavorite);
@@ -534,6 +536,94 @@ const updateUserName = async (req, res) => {
   }
 };
 
+const updateName = async (req, res) => {
+  const { name } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    const updatedUser = await userModel.findByIdAndUpdate(
+      userId,
+      { name },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const updateSurName = async (req, res) => {
+  const { surname } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    const updatedUser = await userModel.findByIdAndUpdate(
+      userId,
+      { surname },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const updateUserAddress = async (req, res) => {
+  const { address } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    const updatedUser = await userModel.findByIdAndUpdate(
+      userId,
+      { address },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const updateUserTown = async (req, res) => {
+  const { town } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    const updatedUser = await userModel.findByIdAndUpdate(
+      userId,
+      { town },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 const updateEmail = async (req, res) => {
   const { email, password } = req.body;
   const userId = req.user.userId;
@@ -695,6 +785,24 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+const updateProduct = async(req,res) => {
+  const productId = req.params.id;
+  const updatedProductData = req.body; 
+
+  try {
+    const updatedProduct = await productsModel.findByIdAndUpdate(productId, updatedProductData, { new: true });
+
+    if (!updatedProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    return res.status(200).json({ message: "Product updated successfully", updatedProduct });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error updating product" });
+  }
+}
+
 //DELETE
 
 const deleteUser = async (req, res) => {
@@ -810,6 +918,23 @@ const deleteAllOrders = async (req, res) => {
   }
 };
 
+const deleteProducts = async (req, res) => {
+  const { id } = req.params; 
+  try {
+    const deletedProduct = await productsModel.findByIdAndDelete(id);
+
+    if (!deletedProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    return res.status(200).json({ message: "Product deleted successfully", id });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error deleting product" });
+  }
+};
+
+
 export {
   userRegister,
   userLogin,
@@ -821,7 +946,7 @@ export {
   updatePhone,
   deleteUser,
   getProducts,
-  getAllProducts,
+  getAllNameProducts,
   addProduct,
   getWishList,
   addWishlist,
@@ -836,4 +961,11 @@ export {
   updateUserInfo,
   deleteAllOrders,
   postStripe,
+  updateUserAddress,
+  updateUserTown,
+  updateName,
+  updateSurName,
+  getAllProducts,
+  deleteProducts,
+  updateProduct,
 };
