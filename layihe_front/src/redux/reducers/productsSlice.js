@@ -64,6 +64,23 @@ export const updateProductThunk = createAsyncThunk(
   }
 );
 
+//ADD PRODUCT
+export const addProductThunk = createAsyncThunk(
+  "api/addProduct",
+  async (productData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5500/products",
+        productData
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response ? error.response.data : error.message);
+    }
+  }
+);
+
+
 export const deleteProductThunk = createAsyncThunk(
   "api/deleteproduct",
   async (productId, { rejectWithValue }) => {
@@ -146,6 +163,19 @@ export const productsSlice = createSlice({
         state.loading = false;
         state.error = action.error.message;
       })
+
+      .addCase(addProductThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.products.push(action.payload);
+      })
+      .addCase(addProductThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addProductThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
 
       // deleteProductThunk
       .addCase(deleteProductThunk.pending, (state) => {

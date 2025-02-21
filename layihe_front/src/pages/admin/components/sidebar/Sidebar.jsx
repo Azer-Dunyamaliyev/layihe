@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "./sidebar.module.scss";
-import { Link } from "react-router-dom"; // Link import edilmiştir
+import { Link } from "react-router-dom"; 
 import { IoBagCheckSharp } from "react-icons/io5";
 import { FaUsers } from "react-icons/fa";
 import { AiFillShop } from "react-icons/ai";

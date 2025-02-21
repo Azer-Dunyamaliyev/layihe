@@ -17,6 +17,7 @@ import Success from "../pages/success/Success";
 import Address from "../pages/account/components/address/Address";
 import AdminPanel from "../pages/admin/AdminPanel";
 import AdminProducts from "../pages/admin/components/admin_products/AdminProducts";
+import AddProducts from "../pages/admin/components/add_products/AddProducts";
 const Router = () => {
   return (
     <BrowserRouter>
@@ -43,6 +44,7 @@ const Router = () => {
 
         <Route path="/admin" element={<AdminPanel />}>
           <Route path="admin-products" element={<AdminProducts />} />
+          <Route path="add-products" element={<AddProducts />} />
         </Route>
       </Routes>
     </BrowserRouter>
