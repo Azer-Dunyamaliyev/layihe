@@ -14,7 +14,8 @@ const productsSchema = mongoose.Schema({
       },
     ],
     images: { type: [String], required: false },
-    sizes: [{ type: String }]
+    sizes: [{ type: String }],
+    info: {type: String},
 },{timestamps:true})
 
 const productsModel = mongoose.model("products",productsSchema)

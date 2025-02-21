@@ -242,12 +242,12 @@ const addProduct = async (req, res) => {
       name,
       price,
       category,
-      subcategory,
       description,
       defaultColor,
-      variants,
-      images,
-      sizes,
+      variants = [],
+      images = [],
+      sizes = [],
+      info,
     } = req.body;
 
     if (!name || !price || !category || !description) {
@@ -256,43 +256,42 @@ const addProduct = async (req, res) => {
         .json({ message: "Lütfen tüm zorunlu alanları doldurun!" });
     }
 
-    if (
-      (!variants || variants.length === 0) &&
-      (!images || images.length === 0)
-    ) {
+    if (variants.length === 0 && images.length === 0) {
       return res
         .status(400)
         .json({ message: "Varyant veya en az 1 görsel gereklidir!" });
     }
 
-    if (variants && variants.length > 0 && !defaultColor) {
+    if (variants.length > 0 && !defaultColor) {
       return res
         .status(400)
-        .json({ message: "Varyantlı ürünlerde defaultColor zorunludur!" });
+        .json({ message: "Varyantlı ürünlerde 'defaultColor' zorunludur!" });
     }
+
+    const uploadedImages = req.files ? req.files.map(file => file.path) : [];
+    const finalImages = uploadedImages.length > 0 ? uploadedImages : images;
 
     const newProduct = new productsModel({
       name,
-      price,
+      price: parseFloat(price),
       category,
-      subcategory,
       description,
-      defaultColor,
-      variants: variants || [],
-      images: images || [],
-      sizes: sizes || [],
+      defaultColor: variants.length > 0 ? defaultColor : "",
+      variants,
+      images: finalImages,
+      sizes,
+      info,
     });
 
     await newProduct.save();
 
-    res
-      .status(201)
-      .json({ message: "Ürün başarıyla eklendi!", product: newProduct });
+    res.status(201).json({ message: "Ürün başarıyla eklendi!", product: newProduct });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Ürün eklenirken hata:", error);
+    res.status(500).json({ message: "Sunucu hatası, tekrar deneyin." });
   }
 };
+
 
 const addWishlist = async (req, res) => {
   try {
@@ -631,7 +630,6 @@ const updateEmail = async (req, res) => {
   try {
     const user = await userModel.findById(userId);
 
-    // Kullanıcı mevcut ve şifreyi doğrula
     if (user) {
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
@@ -934,6 +932,14 @@ const deleteProducts = async (req, res) => {
   }
 };
 
+const uploadImage = (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "Dosya yüklenemedi" });
+  }
+
+  res.json({ fileUrl: `http://localhost:5500/uploads/${req.file.filename}` });
+};
+
 
 export {
   userRegister,
@@ -968,4 +974,5 @@ export {
   getAllProducts,
   deleteProducts,
   updateProduct,
+  uploadImage,
 };

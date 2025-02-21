@@ -8,6 +8,9 @@ import productsRouter from './routes/productsRoute.js'
 import wishlistRouter from './routes/wihslistRoute.js'
 import ordersRouter from './routes/ordersRoute.js'
 import succesOrdersRouter from './routes/successOrderRoute.js'
+import path from "path"
+import uploadRouter from './routes/uploadsRoute.js'
+import fs from "fs";
 configDotenv();
 
 const app = express();
@@ -35,6 +38,13 @@ app.use("/favorites", wishlistRouter);
 app.use("/orders", ordersRouter);
 app.use("/success", succesOrdersRouter);
 
+const __dirname = path.resolve();
+app.use("/upload", uploadRouter);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+const uploadDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // DB Bağlantısı
 connectDB().then(() => {
