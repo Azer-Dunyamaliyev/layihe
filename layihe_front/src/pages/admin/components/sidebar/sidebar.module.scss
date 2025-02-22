@@ -80,3 +80,17 @@
     opacity: 1;
   }
 }
+
+
+@media screen and (max-width:560px) {
+  .sidebar {
+    width: 80px;
+    &:hover {
+      width: 80px;
+    }
+
+    h2 {
+      display: none;
+    }
+  }
+}

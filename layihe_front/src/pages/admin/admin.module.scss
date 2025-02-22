@@ -15,3 +15,11 @@
   width: calc(100% - 200px);
   transition: margin-left 0.3s ease, width 0.3s ease;
 }
+
+@media screen and (max-width:560px) {
+  .sidebar:hover + .content {
+    margin-left: 80px;
+    width: calc(100% - 80px);
+    transition: margin-left 0.3s ease, width 0.3s ease;
+  }
+}

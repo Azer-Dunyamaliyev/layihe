@@ -18,6 +18,8 @@ import Address from "../pages/account/components/address/Address";
 import AdminPanel from "../pages/admin/AdminPanel";
 import AdminProducts from "../pages/admin/components/admin_products/AdminProducts";
 import AddProducts from "../pages/admin/components/add_products/AddProducts";
+import Users from "../pages/admin/components/users/Users";
+import AddUsers from "../pages/admin/components/add_users/AddUsers";
 const Router = () => {
   return (
     <BrowserRouter>
@@ -45,6 +47,8 @@ const Router = () => {
         <Route path="/admin" element={<AdminPanel />}>
           <Route path="admin-products" element={<AdminProducts />} />
           <Route path="add-products" element={<AddProducts />} />
+          <Route path="users" element={<Users />} />
+          <Route path="add-users" element={<AddUsers />} />
         </Route>
       </Routes>
     </BrowserRouter>

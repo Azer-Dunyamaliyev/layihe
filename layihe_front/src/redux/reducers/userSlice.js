@@ -5,15 +5,21 @@ import { clearOrders } from "./basketSlice";
 
 
 //{ USER }
-export const getUserThunk = createAsyncThunk("api/users", async () => {
-  const response = await axios.get("http://localhost:5500/users");
+export const getUserThunk = createAsyncThunk("users/fetchUsers", async (_, { getState }) => {
+  const token = localStorage.getItem("token"); 
+  const response = await axios.get("http://localhost:5500/users", {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
   return response.data;
 });
+
+
 
 //{ ME }
 export const getMeThunk = createAsyncThunk("api/users/me", async (_) => {
   const token = localStorage.getItem("token");
-
   const response = await axios.get("http://localhost:5500/users/me", {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -300,6 +306,21 @@ export const updateTownThunk = createAsyncThunk(
   }
 );
 
+export const updateUserAdminThunk = createAsyncThunk(
+  "adminUser/update",
+  async ({ userId, updateData }, { rejectWithValue }) => {
+    try {
+      const response = await axios.put(
+        `http://localhost:5500/users/update-user/${userId}`,
+        updateData
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response ? error.response.data : "An error occurred");
+    }
+  }
+);
+
 
 //{ DELETE USER}
 
@@ -319,6 +340,19 @@ export const deleteUserThunk = createAsyncThunk(
     }
   }
 );
+
+export const deleteUserAdminThunk = createAsyncThunk(
+  "adminUser/delete",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete(`http://localhost:5500/users/delete-user/${userId}`);
+      return userId; 
+    } catch (error) {
+      return rejectWithValue(error.response ? error.response.data : "An error occurred");
+    }
+  }
+);
+
 
 export const userSlice = createSlice({
   name: "users",
@@ -547,6 +581,35 @@ export const userSlice = createSlice({
       .addCase(deleteUserThunk.pending, (state) => {
         state.loading = true;
       })
+      
+      .addCase(updateUserAdminThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUserAdminThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        const updatedUser = action.payload.user;
+        state.users = state.users.map((user) =>
+          user._id === updatedUser._id ? updatedUser : user
+        );
+      })
+      .addCase(updateUserAdminThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      //DELETE
+      .addCase(deleteUserAdminThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deleteUserAdminThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.users = state.users.filter((user) => user._id !== action.payload); 
+      })
+      .addCase(deleteUserAdminThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 
