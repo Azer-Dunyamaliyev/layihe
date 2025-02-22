@@ -1,6 +1,7 @@
 import express from "express";
 import {
   deleteUser,
+  deleteUserAdmin,
   getAllUsers,
   meUser,
   updateEmail,
@@ -9,6 +10,7 @@ import {
   updatePhone,
   updateSurName,
   updateUserAddress,
+  updateUserAdmin,
   updateUserInfo,
   updateUserName,
   updateUserTown,
@@ -19,10 +21,11 @@ import authMiddleware from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/", authMiddleware, getAllUsers);
+router.get("/", getAllUsers);
 router.get("/me", authMiddleware, meUser);
 router.route("/register").post(userRegister);
 router.route("/login").post(userLogin);
+router.put("/update-user/:userId", updateUserAdmin);
 router.put("/update/username", authMiddleware, updateUserName);
 router.put("/update/name", authMiddleware, updateName);
 router.put("/update/surname", authMiddleware, updateSurName);
@@ -33,4 +36,5 @@ router.put("/update/password", authMiddleware, updatePassword);
 router.put("/update/phone", authMiddleware, updatePhone);
 router.put("/update", authMiddleware, updateUserInfo);
 router.delete("/delete", authMiddleware, deleteUser);
+router.delete("/delete-user/:userId", deleteUserAdmin);
 export default router;

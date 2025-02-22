@@ -801,6 +801,32 @@ const updateProduct = async(req,res) => {
   }
 }
 
+const updateUserAdmin = async (req, res) => {
+  const { userId } = req.params;
+  const updateData = req.body;
+
+  try {
+    const updatedUser = await userModel.findByIdAndUpdate(userId, updateData, {
+      new: true, 
+      runValidators: true,
+    });
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User updated successfully!",
+      user: updatedUser,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
 //DELETE
 
 const deleteUser = async (req, res) => {
@@ -820,6 +846,27 @@ const deleteUser = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+const deleteUserAdmin = async (req, res) => {
+  const { userId } = req.params;  
+
+  if (!userId) {
+    return res.status(400).json({ message: "User ID is required" });
+  }
+
+  try {
+    const user = await userModel.findByIdAndDelete(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ success: true, message: "Account deleted successfully!" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 
 const deleteWishListItem = async (req, res) => {
   try {
@@ -975,4 +1022,6 @@ export {
   deleteProducts,
   updateProduct,
   uploadImage,
+  deleteUserAdmin,
+  updateUserAdmin
 };
