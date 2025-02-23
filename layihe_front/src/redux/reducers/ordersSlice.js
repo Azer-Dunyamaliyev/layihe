@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+
 export const successOrderThunk = createAsyncThunk(
   "order/succesOrder",
   async ({ orderData }, { rejectWithValue }) => {
@@ -30,6 +31,59 @@ export const successOrderThunk = createAsyncThunk(
     }
   }
 );
+
+export const getAllSuccessOrdersThunk = createAsyncThunk(
+  "order/getAllSuccessOrders",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("Token bulunamadı.");
+      }
+
+      const response = await axios.get("http://localhost:5500/success/orders", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response ? error.response.data.message : error.message
+      );
+    }
+  }
+);
+
+export const getUserSuccessOrdersThunk = createAsyncThunk(
+  "order/getUserSuccessOrders",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("Token bulunamadı.");
+      }
+
+      const response = await axios.get(
+        `http://localhost:5500/success/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response ? error.response.data.message : error.message
+      );
+    }
+  }
+);
+
+
 
 // Sipariş yaratmaq
 export const createOrderThunk = createAsyncThunk(
@@ -124,8 +178,6 @@ export const postPaymentThunk = createAsyncThunk(
     }
   }
 );
-
-
 
 
 // Sipariş veziyyetini güncellemek
@@ -230,6 +282,30 @@ export const deleteAllOrdersThunk = createAsyncThunk(
   }
 );
 
+export const updateSuccesOrdersThunk = createAsyncThunk(
+  "orders/updateSuccesOrders",
+  async (updatedOrderData, { rejectWithValue }) => {
+    try {
+      const response = await axios.put("http://localhost:5500/success/update", updatedOrderData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const deleteSuccesOrderAdminThunk = createAsyncThunk(
+  "orders/deleteSuccesOrder",
+  async (orderId, { rejectWithValue }) => {
+    try {
+      await axios.delete(`/api/orders/${orderId}`);
+      return orderId;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
 
 export const ordersSlice = createSlice({
   name: "orders",
@@ -238,7 +314,7 @@ export const ordersSlice = createSlice({
     loading: false,
     error: null,
     orderDetails: null,
-    succesOrders: [],
+    successOrders: [],
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -261,7 +337,7 @@ export const ordersSlice = createSlice({
       })
       .addCase(successOrderThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.succesOrders.push(action.payload);
+        state.successOrders.push(action.payload);
       })
       .addCase(successOrderThunk.rejected, (state, action) => {
         state.loading = false;
@@ -279,6 +355,33 @@ export const ordersSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+
+      //GET SUCCESS
+      .addCase(getAllSuccessOrdersThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getAllSuccessOrdersThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.successOrders = action.payload;
+      })
+      .addCase(getAllSuccessOrdersThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // SUCCESS USERID
+      .addCase(getUserSuccessOrdersThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getUserSuccessOrdersThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.successOrders = action.payload;
+      })
+      .addCase(getUserSuccessOrdersThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+    
       //GET USERID
       .addCase(getOrderByIdThunk.pending, (state) => {
         state.loading = true;
@@ -314,11 +417,11 @@ export const ordersSlice = createSlice({
       .addCase(updateOrderStatusThunk.fulfilled, (state, action) => {
         state.loading = false;
         const updatedOrder = action.payload;
-        const index = state.succesOrders.findIndex(
+        const index = state.successOrders.findIndex(
           (order) => order._id === updatedOrder._id
         );
         if (index !== -1) {
-          state.succesOrders[index] = updatedOrder;
+          state.successOrders[index] = updatedOrder;
         }
       })
       .addCase(updateOrderStatusThunk.rejected, (state, action) => {
@@ -347,7 +450,7 @@ export const ordersSlice = createSlice({
       })
       .addCase(deleteSuccesOrderThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.succesOrders = state.succesOrders.filter(
+        state.successOrders = state.successOrders.filter(
           (order) => order._id !== action.payload.orderId
         );
       })
@@ -364,6 +467,31 @@ export const ordersSlice = createSlice({
         state.orders = [];
       })
       .addCase(deleteAllOrdersThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(updateSuccesOrdersThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateSuccesOrdersThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.successOrders = state.successOrders.map((order) =>
+          order._id === action.payload._id ? action.payload : order
+        );
+      })
+      .addCase(updateSuccesOrdersThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(deleteSuccesOrderAdminThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deleteSuccesOrderAdminThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.successOrders = state.successOrders.filter((order) => order._id !== action.payload);
+      })
+      .addCase(deleteSuccesOrderAdminThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

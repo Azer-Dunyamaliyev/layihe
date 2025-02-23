@@ -21,7 +21,7 @@ const DetailInfo = ({
   const [selectedSize, setSelectedSize] = useState("");
   const [error, setError] = useState(false);
   const { status, loading } = useSelector((state) => state.favorites);
-
+  const [isAddedToBasket, setIsAddedToBasket] = useState(false);
   const selectedVariant = data.variants?.find(
     (variant) => variant.color === selectedColor
   );
@@ -42,14 +42,21 @@ const DetailInfo = ({
     }
   }, [data._id, selectedColor, dispatch]);
 
+  
+
   const handleSizeSelect = (size) => {
     if (selectedSize === size) {
       setSelectedSize("");
     } else {
       setSelectedSize(size);
     }
+    setIsAddedToBasket(false);
     setError(false);
   };
+
+  useEffect(() => {
+    setIsAddedToBasket(false);
+  }, [selectedColor]);
 
   const handleFavoriteToggle = () => {
     const productData = {
@@ -123,9 +130,13 @@ const DetailInfo = ({
       .unwrap()
       .then(() => {
         setSelectedSize("");
+        setIsAddedToBasket(true);
       })
       .catch((error) => console.error("Error adding order to basket:", error));
   };
+
+ 
+  
 
   return (
     <div className={styles.detail_info}>
@@ -171,8 +182,13 @@ const DetailInfo = ({
           <button
             onClick={handleAddToBasket}
             className={error ? styles.errorButton : ""}
+            disabled={isAddedToBasket} 
           >
-            {error ? "Please choose a size" : "Add to my basket"}
+            {error
+              ? "Please choose a size"
+              : isAddedToBasket
+              ? "Added"
+              : "Add to my basket"}{" "}
           </button>
           <button onClick={handleFavoriteToggle}>
             {isFavorite ? (

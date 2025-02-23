@@ -87,7 +87,6 @@ const BasketCart = () => {
     }
   };
 
-  // Sepetten ürün silme fonksiyonu
   const handleRemoveItem = (orderId, itemId) => {
     dispatch(deleteOrderThunk(itemId))  
       .then(() => {
@@ -99,7 +98,6 @@ const BasketCart = () => {
   };
 
   if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error}</p>;
 
   return (
     <div className={styles.carts}>

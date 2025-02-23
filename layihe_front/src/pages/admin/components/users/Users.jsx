@@ -84,24 +84,25 @@ const Users = () => {
   };
 
   const filteredUsers = users
-    .filter((user) => user.email.toLowerCase().includes(searchText.toLowerCase()))
+    .filter((user) =>
+      user.email.toLowerCase().includes(searchText.toLowerCase())
+    )
     .sort((a, b) => {
       if (sort === "name-asc") return a.name.localeCompare(b.name);
       if (sort === "name-desc") return b.name.localeCompare(a.name);
       if (sort === "email-asc") return a.email.localeCompare(b.email);
       if (sort === "email-desc") return b.email.localeCompare(a.email);
-      if (sort === "date-asc") return new Date(a.createdAt) - new Date(b.createdAt);
-      if (sort === "date-desc") return new Date(b.createdAt) - new Date(a.createdAt);
+      if (sort === "date-asc")
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      if (sort === "date-desc")
+        return new Date(b.createdAt) - new Date(a.createdAt);
       return 0;
     });
 
   return (
     <div className={styles.users}>
       <div className={styles.content}>
-        <form
-          onSubmit={(e) => e.preventDefault()}
-          className={styles.filtered}
-        >
+        <form onSubmit={(e) => e.preventDefault()} className={styles.filtered}>
           <div className={styles.search}>
             <span>
               <FaSearch />
@@ -135,6 +136,7 @@ const Users = () => {
                   <th>Email</th>
                   <th>Country Code</th>
                   <th>Phone</th>
+                  <th>Role</th>
                   <th>Created At</th>
                   <th>Edit</th>
                   <th>Delete</th>
@@ -143,13 +145,17 @@ const Users = () => {
               <tbody>
                 {filteredUsers.length > 0 ? (
                   filteredUsers.map((user) => (
-                    <tr key={user._id}>
+                    <tr
+                      key={user._id}
+                      className={user.role === "admin" ? styles.admin : ""}
+                    >
                       <td>
                         {editMode === user._id ? (
                           <input
                             type="text"
                             value={formData.name}
                             onChange={(e) => handleInputChange(e, "name")}
+                            autoFocus
                           />
                         ) : (
                           user.name || "N/A"
@@ -166,24 +172,78 @@ const Users = () => {
                           user.surname || "N/A"
                         )}
                       </td>
-                      <td>{user.username}</td>
-                      <td style={{textTransform: "lowercase"}}>{user.email}</td>
-                      <td>{user.countryCode}</td>
-                      <td>{user.phone}</td>
+                      <td>
+                        {editMode === user._id ? (
+                          <input
+                            type="text"
+                            value={formData.username}
+                            onChange={(e) => handleInputChange(e, "username")}
+                          />
+                        ) : (
+                          user.username
+                        )}
+                      </td>
+                      <td style={{ textTransform: "lowercase" }}>
+                        {editMode === user._id ? (
+                          <input
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => handleInputChange(e, "email")}
+                          />
+                        ) : (
+                          user.email
+                        )}
+                      </td>
+                      <td>
+                        {editMode === user._id ? (
+                          <input
+                            type="text"
+                            value={formData.countryCode}
+                            onChange={(e) =>
+                              handleInputChange(e, "countryCode")
+                            }
+                          />
+                        ) : (
+                          user.countryCode
+                        )}
+                      </td>
+                      <td>
+                        {editMode === user._id ? (
+                          <input
+                            type="text"
+                            value={formData.phone}
+                            onChange={(e) => handleInputChange(e, "phone")}
+                          />
+                        ) : (
+                          user.phone
+                        )}
+                      </td>
+                      <td>
+                        <div className={styles.admin}>{user.role}</div>
+                      </td>
                       <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                       <td>
                         {editMode === user._id ? (
-                          <button className={styles.save} onClick={() => handleUpdate(user._id)}>
+                          <button
+                            className={styles.save}
+                            onClick={() => handleUpdate(user._id)}
+                          >
                             <FaCheck />
                           </button>
                         ) : (
-                          <button className={styles.edit} onClick={() => handleEditClick(user)}>
+                          <button
+                            className={styles.edit}
+                            onClick={() => handleEditClick(user)}
+                          >
                             <FaEdit />
                           </button>
                         )}
                       </td>
                       <td>
-                        <button className={styles.delete} onClick={() => handleDelete(user._id)}>
+                        <button
+                          className={styles.delete}
+                          onClick={() => handleDelete(user._id)}
+                        >
                           <FaTrash />
                         </button>
                       </td>
@@ -191,7 +251,9 @@ const Users = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="9" style={{ textAlign: "center" }}>No users found</td>
+                    <td colSpan="9" style={{ textAlign: "center" }}>
+                      No users found
+                    </td>
                   </tr>
                 )}
               </tbody>

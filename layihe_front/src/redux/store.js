@@ -5,6 +5,7 @@ import productsSlice from "./reducers/productsSlice";
 import wishListSlice from "./reducers/wishlistSlice";
 import ordersSlice from "./reducers/ordersSlice";
 import basketSlice from "./reducers/basketSlice";
+import subscribeSlice from "./reducers/subscribeSlice";
 
 export const store = configureStore({
     reducer: {
@@ -14,5 +15,6 @@ export const store = configureStore({
         favorites: wishListSlice,
         orders: ordersSlice,
         basket: basketSlice,
+        subscribe: subscribeSlice,
     }
 })

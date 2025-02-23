@@ -16,7 +16,6 @@ export const getUserThunk = createAsyncThunk("users/fetchUsers", async (_, { get
 });
 
 
-
 //{ ME }
 export const getMeThunk = createAsyncThunk("api/users/me", async (_) => {
   const token = localStorage.getItem("token");

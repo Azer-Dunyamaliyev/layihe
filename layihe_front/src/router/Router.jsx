@@ -20,7 +20,13 @@ import AdminProducts from "../pages/admin/components/admin_products/AdminProduct
 import AddProducts from "../pages/admin/components/add_products/AddProducts";
 import Users from "../pages/admin/components/users/Users";
 import AddUsers from "../pages/admin/components/add_users/AddUsers";
+import Orders from "../pages/admin/components/orders/Orders";
+import Dashboard from "../pages/admin/components/dashboard/Dashboard";
+import { useSelector } from "react-redux";
+import AdminRoute from "../pages/admin/router/AdminRoute";
+import Purchases from "../pages/account/components/purchases/Purchases";
 const Router = () => {
+  const { me } = useSelector((state) => state.users);
   return (
     <BrowserRouter>
       <Routes>
@@ -30,6 +36,7 @@ const Router = () => {
         <Route path="/account" element={<Account />} />
         <Route path="/detail" element={<Detail />} />
         <Route path="/address" element={<Address />} />
+        <Route path="/purchases" element={<Purchases />} />
         <Route path="/man" element={<Man />} />
         <Route path="/woman" element={<Woman />} />
         <Route path="/category/:name" element={<Collection />} />
@@ -44,11 +51,15 @@ const Router = () => {
         <Route path="/checkout/:orderId" element={<Checkout />} />
         <Route path="/success" element={<Success />} />
 
-        <Route path="/admin" element={<AdminPanel />}>
-          <Route path="admin-products" element={<AdminProducts />} />
-          <Route path="add-products" element={<AddProducts />} />
-          <Route path="users" element={<Users />} />
-          <Route path="add-users" element={<AddUsers />} />
+        <Route element={<AdminRoute />}>
+          <Route path="/admin" element={<AdminPanel />}>
+            <Route index element={<Dashboard />} />
+            <Route path="admin-products" element={<AdminProducts />} />
+            <Route path="add-products" element={<AddProducts />} />
+            <Route path="users" element={<Users />} />
+            <Route path="add-users" element={<AddUsers />} />
+            <Route path="orders" element={<Orders />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

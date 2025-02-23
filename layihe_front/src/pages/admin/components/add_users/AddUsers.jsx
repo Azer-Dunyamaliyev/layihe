@@ -39,6 +39,7 @@ const AddUsers = () => {
       password: "",
       phone: "",
       countryCode: selectedCountry.value,
+      role: "user",
     },
     validationSchema: Yup.object({
       username: Yup.string().min(5).max(20).required("Username is required"),
@@ -51,6 +52,7 @@ const AddUsers = () => {
     }),
     onSubmit: async (values) => {
       setErrorMessage(null);
+      formik.resetForm();
       try {
         const result = await dispatch(postRegisterThunk(values));
         if (!result.payload.success) {
@@ -82,7 +84,6 @@ const AddUsers = () => {
         <div className={styles.form}>
           <h2>User Details</h2>
           <form onSubmit={formik.handleSubmit}>
-            {/* Username Input */}
             <div>
               <input
                 id="username"
@@ -178,27 +179,141 @@ const AddUsers = () => {
               <p className={styles.errorText}>{formik.errors.password}</p>
             )}
 
-            <Select
-              options={countryOptions}
-              value={selectedCountry}
-              onChange={(selected) => {
-                setSelectedCountry(selected);
-                formik.setFieldValue("countryCode", selected.value);
-              }}
-            />
+            <div className={styles.nomer}>
+              <Select
+                options={countryOptions}
+                value={selectedCountry}
+                onChange={(selected) => {
+                  setSelectedCountry(selected);
+                  formik.setFieldValue("countryCode", selected.value);
+                }}
+                getOptionLabel={(e) => (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                    }}
+                  >
+                    <img
+                      src={e.flag}
+                      alt={e.label}
+                      style={{ width: "20px", height: "15px" }}
+                    />
+                    {e.value}
+                  </div>
+                )}
+                styles={{
+                  dropdownIndicator: (base) => ({
+                    ...base,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }),
 
-            <input
-              name="phone"
-              placeholder="Phone"
-              {...formik.getFieldProps("phone")}
-            />
-            {formik.touched.phone && formik.errors.phone && (
-              <p>{formik.errors.phone}</p>
-            )}
+                  control: (base) => ({
+                    ...base,
+                    height: "45px",
+                    width: "100%",
+                    borderRadius: "0",
+                    display: "flex",
+                    alignItems: "center",
+                    fontSize: "14px",
+                    border: "none",
+                    borderBottom: "1px solid #b2b2b2",
+                  }),
+                  input: (base) => ({
+                    ...base,
+                    padding: "0",
+                    margin: "0",
+                    fontSize: "14px !important",
+                  }),
+                  menuList: (base) => ({
+                    ...base,
+                    maxHeight: "150px",
+                    overflowY: "auto",
+                  }),
+                }}
+              />
 
-            {errorMessage && <p>{errorMessage}</p>}
+              <div className={styles.nomer_input}>
+                <input
+                  type="text"
+                  name="phone"
+                  placeholder="Mobile"
+                  onChange={(e) => {
+                    const onlyNumbers = e.target.value.replace(/\D/g, "");
+                    formik.setFieldValue("phone", onlyNumbers);
+                  }}
+                  onBlur={formik.handleBlur}
+                  value={formik.values.phone}
+                  inputMode="numeric"
+                  style={{
+                    borderBottom:
+                      formik.errors.phone && formik.touched.phone
+                        ? "1px solid #cb4848"
+                        : "1px solid #b2b2b2",
+                  }}
+                />
 
-            <button type="submit">Add User</button>
+                {formik.errors.phone && formik.touched.phone && (
+                  <p
+                    className={styles.errorText}
+                    style={{ padding: "10px 0 0" }}
+                  >
+                    {formik.errors.phone}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.radioGroup}>
+              <h3>Role</h3>
+              <div className={styles.radioes}>
+                <label className={styles.radio}>
+                  <div className={styles.input}>
+                    <input
+                      type="radio"
+                      name="role"
+                      value="user"
+                      checked={formik.values.role === "user"}
+                      onChange={() => formik.setFieldValue("role", "user")}
+                    />
+                    <span className={styles.custom_radio}></span>
+                  </div>
+                  <div className={styles.radio_texts}>
+                    <h4>User</h4>
+                    <p>
+                      An user can delete records,import data,change record owner
+                      and access reports
+                    </p>
+                  </div>
+                </label>
+                <label className={styles.radio}>
+                  <div className={styles.input}>
+                    <input
+                      type="radio"
+                      name="role"
+                      value="admin"
+                      checked={formik.values.role === "admin"}
+                      onChange={() => formik.setFieldValue("role", "admin")}
+                    />
+                    <span className={styles.custom_radio}></span>
+                  </div>
+                  <div className={styles.radio_texts}>
+                    <h4>Admin</h4>
+                    <p>
+                      In addition to all User related activites,can configure
+                      admin settings option
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+            {errorMessage && <p className={styles.errorText}>{errorMessage}</p>}
+            <button type="submit" className={styles.submit}>
+              Add User
+            </button>
           </form>
         </div>
       </div>
