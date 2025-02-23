@@ -7,6 +7,7 @@ import "react-modern-drawer/dist/index.css";
 import { useDispatch, useSelector } from "react-redux";
 import { getMeThunk, logout } from "../../redux/reducers/userSlice";
 import { getUserOrders } from "../../redux/reducers/basketSlice";
+import { MdOutlineAdminPanelSettings } from "react-icons/md";
 
 const Header = () => {
   const dispatch = useDispatch();
@@ -45,9 +46,6 @@ const Header = () => {
               </li>
               <li>
                 <Link to={"/man"}>Man</Link>
-              </li>
-              <li>
-                <Link to={"/kids"}>Kids</Link>
               </li>
               <li className={styles.open_burger}>
                 <button onClick={toggleDrawer}>
@@ -113,7 +111,9 @@ const Header = () => {
                   {loading ? (
                     <h3>Loading...</h3>
                   ) : (
-                    <h3>Hello {me.name || me.username || me.email || "User"}</h3>
+                    <h3>
+                      Hello {me.name || me.username || me.email || "User"}
+                    </h3>
                   )}
                   <ul>
                     <li onClick={() => navigate("/account")}>
@@ -169,6 +169,11 @@ const Header = () => {
                 </div>
               </li>
             )}
+            {me.role === "admin" && (
+              <li className={styles.admin}>
+                <Link to={"/admin"}>Admin</Link>
+              </li>
+            )}
             <li>
               <Link to={"/wishlist"}>Favorite products</Link>
             </li>
@@ -193,6 +198,11 @@ const Header = () => {
                 </svg>
               </Link>
             </li>
+            {me.role === "admin" && (
+              <li className={styles.admin}>
+                <Link to={"/admin"}><MdOutlineAdminPanelSettings /></Link>
+              </li>
+            )}
             <li>
               <Link to={"/wishlist"}>
                 <svg

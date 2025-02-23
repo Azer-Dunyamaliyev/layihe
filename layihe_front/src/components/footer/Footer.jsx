@@ -12,6 +12,13 @@ import spotify from "../../assets/images/spotify.png";
 import pinterest from "../../assets/images/pinterest.png";
 const Footer = () => {
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+  const handlePurchasesClick = (e) => {
+    if (!token) {
+      e.preventDefault(); 
+      navigate("/register");
+    }
+  };
   return (
     <div className={styles.footer}>
       <div className="container">
@@ -21,19 +28,12 @@ const Footer = () => {
               <h3>Help</h3>
               <ul>
                 <li>
-                  <Link>My order status</Link>
-                </li>
-                <li>
-                  <Link>Processing a return</Link>
-                </li>
-                <li>
-                  <Link>How to make a return</Link>
-                </li>
-                <li>
-                  <Link>Delivery</Link>
-                </li>
-                <li>
-                  <Link>How to avoid scams when shopping</Link>
+                  <Link
+                    to={token ? "/purchases" : '/register'}
+                    onClick={handlePurchasesClick}
+                  >
+                    My order status
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -41,10 +41,10 @@ const Footer = () => {
               <h3>Company</h3>
               <ul>
                 <li>
-                  <Link to={'/about'}>About Us</Link>
+                  <Link to={"/about"}>About Us</Link>
                 </li>
                 <li>
-                  <Link to={'/about'}>Work with us</Link>
+                  <Link to={"/about"}>Work with us</Link>
                 </li>
               </ul>
             </div>
@@ -53,17 +53,19 @@ const Footer = () => {
             <div className={styles.app}>
               <h3>Our app</h3>
               <div className={styles.images}>
-                <Link to={'https://apps.apple.com/tr/app/koton-giyim-al%C4%B1%C5%9Fveri%C5%9F-sitesi/id1436987707'}>
-                  <img
-                    src={store}
-                    alt="app store"
-                  />
+                <Link
+                  to={
+                    "https://apps.apple.com/tr/app/koton-giyim-al%C4%B1%C5%9Fveri%C5%9F-sitesi/id1436987707"
+                  }
+                >
+                  <img src={store} alt="app store" />
                 </Link>
-                <Link to={"https://play.google.com/store/apps/details?id=com.koton.app&hl=tr"}>
-                  <img
-                    src={play}
-                    alt="google play"
-                  />
+                <Link
+                  to={
+                    "https://play.google.com/store/apps/details?id=com.koton.app&hl=tr"
+                  }
+                >
+                  <img src={play} alt="google play" />
                 </Link>
               </div>
             </div>
@@ -73,7 +75,7 @@ const Footer = () => {
                 <Link to={"https://www.tiktok.com/@kotoncom"}>
                   <img src={tiktok} alt="tiktok" />
                 </Link>
-                <Link to={'https://www.instagram.com/koton/'}>
+                <Link to={"https://www.instagram.com/koton/"}>
                   <img src={instagram} alt="instagram" />
                 </Link>
                 <Link to={"https://www.facebook.com/KotonGlobal/?locale=tr_TR"}>
@@ -82,13 +84,19 @@ const Footer = () => {
                 <Link to={"https://x.com/koton?mx=2"}>
                   <img src={twitter} alt="twitter" />
                 </Link>
-                <Link to={"https://www.youtube.com/channel/UCGxrvLicvePAxeSigIVH0IQ"}>
+                <Link
+                  to={
+                    "https://www.youtube.com/channel/UCGxrvLicvePAxeSigIVH0IQ"
+                  }
+                >
                   <img src={youtube} alt="youtube" />
                 </Link>
-                <Link to={"https://open.spotify.com/artist/3ywPVNDDrvBtO00ghXXIaS"}>
+                <Link
+                  to={"https://open.spotify.com/artist/3ywPVNDDrvBtO00ghXXIaS"}
+                >
                   <img src={spotify} alt="spotify" />
                 </Link>
-                <Link to={'https://tr.pinterest.com/koton/'}>
+                <Link to={"https://tr.pinterest.com/koton/"}>
                   <img src={pinterest} alt="pinterest" />
                 </Link>
               </div>
