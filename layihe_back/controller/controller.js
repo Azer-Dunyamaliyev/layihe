@@ -7,6 +7,7 @@ import ordersModel from "../models/ordersModel.js";
 import mongoose from "mongoose";
 import successOrderModel from "../models/successOrdersModel.js";
 import Stripe from "stripe";
+import subscribeModel from "../models/subscribeModel.js";
 
 
 // GET
@@ -27,6 +28,26 @@ const meUser = async (req, res) => {
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+const getSuccessOrdersByUserId = async (req, res) => {
+  try {
+    const userId = req.user.userId
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const orders = await successOrderModel.find({ userId }).populate("products.productId");
+
+    if (!orders.length) {
+      return res.status(404).json({ message: "No orders found for this user" });
+    }
+
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -165,13 +186,27 @@ const getOrderById = async (req, res) => {
   }
 };
 
+const getAllSuccessOrders = async (req, res) => {
+  try {
+    const orders = await successOrderModel
+      .find()
+      .populate("userId")
+      .populate("products.productId");
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Hata:", error); 
+    res.status(500).json({ message: "Siparişler alınırken hata oluştu.", error });
+  }
+};
+
+
 //POST
 
 const userRegister = async (req, res) => {
   try {
-    const { username, email, password, phone, countryCode } = req.body;
+    const { username, email, password, phone, countryCode, role = "user" } = req.body;
 
-    // Useri yoxla
     let user = await userModel.findOne({ email });
     if (user) {
       return res
@@ -179,7 +214,6 @@ const userRegister = async (req, res) => {
         .json({ success: false, message: "This email is already registered!" });
     }
 
-    // Şifreyi şifrele
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -190,6 +224,7 @@ const userRegister = async (req, res) => {
       password: hashedPassword,
       phone,
       countryCode,
+      role
     });
     await user.save();
 
@@ -511,6 +546,29 @@ const postStripe = async (req, res) => {
   }
 };
 
+const addSubscriber = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: "Email gereklidir!" });
+  }
+
+  try {
+    const existingSubscriber = await subscribeModel.findOne({ email });
+
+    if (existingSubscriber) {
+      return res.status(400).json({ message: "Bu email zaten kayıtlı!" });
+    }
+
+    const newSubscriber = new subscribeModel({ email });
+    await newSubscriber.save();
+
+    res.status(201).json({ message: "Başarıyla abone olundu!", email });
+  } catch (error) {
+    res.status(500).json({ message: "Sunucu hatası!", error });
+  }
+};
+
 //PUT
 
 const updateUserName = async (req, res) => {
@@ -826,6 +884,22 @@ const updateUserAdmin = async (req, res) => {
   }
 };
 
+const updateSuccesOrders = async (req, res) => {
+  const { orderId, status } = req.body;
+
+  try {
+    const order = await successOrderModel.findByIdAndUpdate(orderId, { status }, { new: true });
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 
 //DELETE
 
@@ -987,6 +1061,19 @@ const uploadImage = (req, res) => {
   res.json({ fileUrl: `http://localhost:5500/uploads/${req.file.filename}` });
 };
 
+const deleteSuccesOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedOrder = await successOrderModel.findByIdAndDelete(id);
+    if (!deletedOrder) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    res.json({ message: "Order deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting order", error });
+  }
+}
+
 
 export {
   userRegister,
@@ -1023,5 +1110,10 @@ export {
   updateProduct,
   uploadImage,
   deleteUserAdmin,
-  updateUserAdmin
+  updateUserAdmin,
+  getAllSuccessOrders,
+  updateSuccesOrders,
+  deleteSuccesOrder,
+  addSubscriber,
+  getSuccessOrdersByUserId,
 };

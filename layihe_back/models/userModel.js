@@ -13,6 +13,7 @@ const userSchema = mongoose.Schema(
     zip: { type: String, default: "" },
     country: { type: String, default: "" },
     town: { type: String, default: "" },
+    role: {type: String, default: "user"}
   },
   { timestamps: true }
 );

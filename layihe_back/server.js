@@ -8,6 +8,7 @@ import productsRouter from './routes/productsRoute.js'
 import wishlistRouter from './routes/wihslistRoute.js'
 import ordersRouter from './routes/ordersRoute.js'
 import succesOrdersRouter from './routes/successOrderRoute.js'
+import subscribeRouter from './routes/subscribeRoute.js'
 import path from "path"
 import uploadRouter from './routes/uploadsRoute.js'
 import fs from "fs";
@@ -37,6 +38,7 @@ app.use("/products", productsRouter);
 app.use("/favorites", wishlistRouter);
 app.use("/orders", ordersRouter);
 app.use("/success", succesOrdersRouter);
+app.use("/subscribe", subscribeRouter);
 
 const __dirname = path.resolve();
 app.use("/upload", uploadRouter);
